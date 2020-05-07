@@ -1,5 +1,14 @@
 # Redis Note
 
+Check out the following links to continue learning about Redis.
+
+1. [Redis Documentation](http://redis.io/documentation)
+1. [Command Reference](http://redis.io/commands)
+1. [Implement a Twitter Clone in Redis](http://redis.io/topics/twitter-clone)
+1. [Introduction to Redis Data Types](http://redis.io/topics/data-types-intro)
+
+---
+
 As a first example, we can use the command SET to store the value "fido" at key "server:name":
 
 
