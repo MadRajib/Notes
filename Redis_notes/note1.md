@@ -298,3 +298,41 @@ In these examples, the scores are years of birth and the values are the names of
 ```bash
     ZRANGE hackers 2 4 => 1) "Claude Shannon", 2) "Alan Kay", 3) "Richard Stallman"
 ```
+
+Simple strings, sets and sorted sets already get a lot done but there is one more data type Redis can handle: **Hashes.**
+
+Hashes are maps between string fields and string values, so they are the perfect data type to represent objects (eg: A User with a number of fields like name, surname, age, and so forth):
+
+```bash
+    HSET user:1000 name "John Smith"
+    HSET user:1000 email "john.smith@example.com"
+    HSET user:1000 password "s3cret"
+
+```
+
+
+To get back the saved data use **HGETALL**:
+
+```bash
+    HGETALL user:1000
+
+    > HGETALL user:1000
+    1) "name"
+    2) "john smith"
+    3) "email"
+    4) "johnsmith@example.com"
+    5) "password"
+    6) "s3cret"
+```
+
+You can also set multiple fields at once:
+
+```bash
+    HMSET user:1001 name "Mary Jones" password "hidden" email "mjones@example.com"
+```
+
+If you only need a single field value that is possible as well:
+
+```bash
+    HGET user:1001 name => "Mary Jones"
+```
