@@ -122,3 +122,54 @@ public:
 };
 
 ```
+
+## 67. Add Binary
+
+Given two binary strings, return their sum (also a binary string).
+
+The input strings are both non-empty and contains only characters 1 or 0.
+
+```
+
+Example 1:
+
+Input: a = "11", b = "1"
+Output: "100"
+Example 2:
+
+Input: a = "1010", b = "1011"
+Output: "10101"
+
+```
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    string addBinary(string a, string b) {
+        
+        string res;
+        auto iter1 = a.rbegin();
+        auto iter2 = b.rbegin();
+        int c = 0;
+        while(iter1 < a.rend() || iter2 < b.rend()){
+            int b1 = 0 ,b2 = 0;
+            if(iter1 < a.rend()) b1 = *iter1 - '0';
+            if(iter2 < b.rend()) b2 = *iter2 - '0';
+            
+            int v = b1+b2 + c;
+            c = v/2;
+            v = v%2;
+            res.push_back((v)?'1':'0');
+            iter1++;
+            iter2++;
+        }
+        
+        if(c>0) res.push_back('1');
+        reverse(res.begin(),res.end());
+        return res;
+        
+    }
+};
+```
