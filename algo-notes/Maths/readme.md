@@ -87,3 +87,38 @@ public:
     }
 };
 ```
+
+## 13. Roman to Integer
+
+### Solution
+
+```cpp
+unordered_map<char,int> roman_order = {{'I',1},
+                                    {'V',5},
+                                    {'X',10},
+                                    {'L',50},
+                                    {'C',100},
+                                    {'D',500},
+                                    {'M',1000}};
+
+class Solution {
+public:
+    int romanToInt(string s) {
+        int prev = 0;
+        int res = 0;
+        for(auto iter = s.rbegin(); iter != s.rend() ;iter++){
+                    
+            auto val = roman_order.find(*iter)->second;
+            if(val >= prev){
+                res+=val;
+            }else{
+                res-=val;
+            }
+            
+            prev = val;
+        }
+        return res;
+    }
+};
+
+```
