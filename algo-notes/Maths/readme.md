@@ -173,3 +173,26 @@ public:
     }
 };
 ```
+
+## 69. Sqrt(x)
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    int mySqrt(int x) {
+        int l = 0,h = x;
+        while(l<=h){
+            long long m = l + (h-l)/2;
+            long long srt = m*m;
+            if(srt == x) return m;
+            if(srt < x) l = m+1;
+            else h = m-1;
+        }
+        
+        return l-1;
+    }
+};
+ 
+```
