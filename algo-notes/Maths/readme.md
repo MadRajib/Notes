@@ -245,3 +245,26 @@ public:
 };
 
 ```
+
+## 172. Factorial Trailing Zeroes
+
+Given an integer n, return the number of trailing zeroes in n!.
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    int trailingZeroes(int n) {
+        int res = 0;
+        while(n>4){
+            res += n/5;
+            n /= 5;
+        }
+        
+        return res;
+    }
+};
+
+
+```
