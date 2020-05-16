@@ -196,6 +196,7 @@ public:
 };
 
 ```
+
 ## 168. Excel Sheet Column Title
 
 ### Solution
@@ -211,6 +212,34 @@ public:
             n = (n-1)/26;
         }
         reverse(res.begin(),res.end());
+        return res;
+    }
+};
+
+```
+
+## 171. Excel Sheet Column Number
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    int titleToNumber(string s) {
+        
+        auto iter = s.rbegin();
+        int res = 0;
+        long r = 1;
+        while(iter != s.rend()){
+            int v = *iter - 'A' + 1;
+            
+            res += r*v;
+            r*=26;
+            
+            iter++;
+            
+        }
+        
         return res;
     }
 };
