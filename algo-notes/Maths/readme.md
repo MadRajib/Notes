@@ -196,3 +196,23 @@ public:
 };
 
 ```
+## 168. Excel Sheet Column Title
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    string convertToTitle(int n) {
+        string res;
+        while(n){
+            int x = (n-1)%26;
+            res.push_back(char(65+x)) ;
+            n = (n-1)/26;
+        }
+        reverse(res.begin(),res.end());
+        return res;
+    }
+};
+
+```
