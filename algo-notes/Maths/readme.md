@@ -329,3 +329,33 @@ public:
     }
 };
 ```
+
+
+## 204. Count Primes
+
+
+### Solution 
+
+Steve
+
+```cpp
+class Solution {
+public:
+    int countPrimes(int n) {
+        
+        if(n<2) return 0;
+        
+        int primes [n];
+        fill(primes, primes + n, 0);
+        int res = 0;
+        
+        for(int i =2;i<n;i++){
+            if(primes[i] == 0) res++;
+            for(int j =1;i*j<n;j++){
+                primes[i*j] = 1;
+            }
+        }
+        return res;
+    }
+};
+```
