@@ -113,3 +113,36 @@ public:
     }
 };
 ```
+
+## 8. String to Integer (atoi)
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    int myAtoi(string str) {
+        long res = 0;
+        int i = 0;
+        int sign = 1;
+        while(i < str.length() && str[i] == ' ') i++;
+        
+        if(str[i] == '-' || str[i] == '+'){
+            if(str[i] == '-') sign =-1;
+            i++;
+        }
+        
+        while(isdigit(str[i])){
+            short v = str[i] - '0'; 
+            res = res*10 + v;
+            if(res > INT_MAX){
+                
+                return (sign>0)?2147483647:-2147483648;
+            }
+            i++;
+        }
+        
+        return res*sign;
+    }
+};
+```
