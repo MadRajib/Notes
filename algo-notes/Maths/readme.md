@@ -828,3 +828,87 @@ public:
 };
 
 ```
+
+## 645. Set Mismatch
+
+The set S originally contains numbers from 1 to n. But unfortunately, due to the data error, one of the numbers in the set got duplicated to another number in the set, which results in repetition of one number and loss of another number.
+
+Given an array nums representing the data status of this set after the error. Your task is to firstly find the number occurs twice and then find the number that is missing. Return them in the form of an array.
+```
+Example 1:
+Input: nums = [1,2,2,4]
+Output: [2,3]
+```
+
+### Solution
+We know that all the elements in the given numsnums array are positive, and lie in the range 11 to nn only. Thus, we can pick up each element ii from numsnums. For every number ii picked up, we can invert the element at the index \left|i\right|∣i∣. By doing so, if one of the elements jj occurs twice, when this number is encountered the second time, the element nums[\left|i\right|]nums[∣i∣] will be found to be negative. Thus, while doing the inversions, we can check if a number found is already negative, to find the duplicate number.
+
+After the inversions have been done, if all the elements in numsnums are present correctly, the resultant numsnums array will have all the elements as negative now. But, if one of the numbers, jj is missing, the element at the j^{th}j 
+th
+  index will be positive. This can be used to determine the missing number.
+
+
+
+```cpp
+class Solution {
+public:
+    // O(n) O(1)      
+    vector<int> findErrorNums(vector<int>& nums) {
+        int dup = 0;
+        for(int i = 0;i<nums.size();i++){
+            if(nums[abs(nums[i])-1] <0){
+                dup = abs(nums[i]);
+            }else{
+                nums[abs(nums[i]) -1] *=-1;
+            }    
+        }
+        
+        for(int i =0;i<nums.size();i++){
+            if(nums[i]>0){
+                return {dup,i+1};
+            }
+        }
+        
+        return {};
+       
+    }
+    
+    //sorting
+    public class Solution {
+    public int[] findErrorNums(int[] nums) {
+        Arrays.sort(nums);
+        int dup = -1, missing = 1;
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] == nums[i - 1])
+                dup = nums[i];
+            else if (nums[i] > nums[i - 1] + 1)
+                missing = nums[i - 1] + 1;
+        }
+        return new int[] {dup, nums[nums.length - 1] != nums.length ? nums.length : missing};
+    }
+}
+    
+    //hashing
+    public class Solution {
+    public int[] findErrorNums(int[] nums) {
+        Map < Integer, Integer > map = new HashMap();
+        int dup = -1, missing = 1;
+        for (int n: nums) {
+            map.put(n, map.getOrDefault(n, 0) + 1);
+        }
+        for (int i = 1; i <= nums.length; i++) {
+            if (map.containsKey(i)) {
+                if (map.get(i) == 2)
+                    dup = i;
+            } else
+                missing = i;
+        }
+        return new int[]{dup, missing};
+    }
+}
+    
+};
+
+
+
+```
