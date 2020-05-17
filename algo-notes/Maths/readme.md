@@ -679,3 +679,119 @@ public:
 };
 
 ```
+
+## 598. Range Addition II
+
+Given an m * n matrix M initialized with all 0's and several update operations.
+
+Operations are represented by a 2D array, and each operation is represented by an array with two positive integers a and b, which means M[i][j] should be added by one for all 0 <= i < a and 0 <= j < b.
+
+You need to count and return the number of maximum integers in the matrix after performing all the operations.
+
+```
+Example 1:
+Input: 
+m = 3, n = 3
+operations = [[2,2],[3,3]]
+Output: 4
+Explanation: 
+Initially, M = 
+[[0, 0, 0],
+ [0, 0, 0],
+ [0, 0, 0]]
+
+After performing [2,2], M = 
+[[1, 1, 0],
+ [1, 1, 0],
+ [0, 0, 0]]
+
+After performing [3,3], M = 
+[[2, 2, 1],
+ [2, 2, 1],
+ [1, 1, 1]]
+
+So the maximum integer in M is 2, and there are four of it in M. So return 4.
+```
+
+### Solution
+
+![](./images/598.png)
+
+```cpp
+class Solution {
+public:
+    int maxCount(int m, int n, vector<vector<int>>& ops) {
+        for(auto op: ops){
+            m = min(m,op[0]);
+            n = min(n,op[1]);
+        }
+        return m*n;
+        
+    }
+};
+
+```
+
+## 628. Maximum Product of Three Numbers
+
+Given an integer array, find three numbers whose product is maximum and output the maximum product.
+```
+Example 1:
+
+Input: [1,2,3]
+Output: 6
+ 
+
+Example 2:
+
+Input: [1,2,3,4]
+Output: 24
+```
+### Solution
+
+Thus, either the product nums[0] \times nums[1] \times nums[n-1]nums[0]×nums[1]×nums[n−1] or    
+nums[n-3] \times nums[n-2] \times nums[n-1]nums[n−3]×nums[n−2]×nums[n−1] will give the required result.  
+Thus, we need to find the larger one from out of these values.
+
+```cpp
+class Solution {
+public:
+    int maximumProduct(vector<int>& nums) {
+        sort(nums.begin(),nums.end());
+        int lst = nums.size() -1;
+        return max(nums[0]*nums[1]*nums[lst],nums[lst]*nums[lst-1]*nums[lst-2]); 
+    }
+    
+    int maximumProduct(vector<int>& nums) {
+        int min1,min2;
+        min1 = min2 = INT_MAX;
+        
+        int max1,max2,max3;
+        max1 = max2 = max3 = INT_MIN;
+        
+        for(auto x: nums){
+            if(x < min1){ 
+                min2 = min1;
+                min1 = x;
+            }else if(x < min2){
+                min2 = x;
+            }
+            
+            if(x > max1){
+                max3 = max2;
+                max2 = max1;
+                max1 = x;
+            }else if(x > max2){
+                max3 = max2;
+                max2 = x;
+            }else if(x > max3){
+                max3 = x;
+            }
+        }
+        
+        return max(min1*min2*max1,max3*max2*max1);
+    }
+};
+
+```
+
