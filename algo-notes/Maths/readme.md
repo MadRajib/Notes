@@ -493,3 +493,43 @@ public:
     }
 };
 ```
+
+## 367. Valid Perfect Square
+
+Given a positive integer num, write a function which returns True if num is a perfect square else False.
+
+Follow up: Do not use any built-in library function such as sqrt.
+
+```
+Example 1:
+
+Input: num = 16
+Output: true
+Example 2:
+
+Input: num = 14
+Output: false
+
+```
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    bool isPerfectSquare(int num) {
+        
+        int l = 0,h = num;
+        while(l<=h){
+            long int m = l + (h-l)/2;
+            long sq = m*m;
+            if(sq == num) return true;
+            if(sq < num) l = m+1;
+            else h = m-1;
+        }
+        
+        return false;
+    }
+};
+
+```
