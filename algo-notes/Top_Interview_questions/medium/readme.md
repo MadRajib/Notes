@@ -336,3 +336,65 @@ public:
 };
 ```
 
+
+## 279. Perfect Squares
+
+Given a positive integer n, find the least number of perfect square numbers (for example, 1, 4, 9, 16, ...) which sum to n.
+
+```
+Example 1:
+
+Input: n = 12
+Output: 3 
+Explanation: 12 = 4 + 4 + 4.
+Example 2:
+
+Input: n = 13
+Output: 2
+Explanation: 13 = 4 + 9.
+```
+
+### Solution
+
+Solution 1. According to Lagrange's four-square theorem(please wiki/google), any positive number can be represented as 4(at most) square number sum.
+
+1. divide by 4, notice that, 2 and 8, 3 and 12, 4 and 16 has the same number of square factors.
+1. if number%8==7, this result in a square factors 2^2 + 1 +1 +1, which is four.
+1. if any two numbers can suqare sum to n, return 1 or 2.
+1. otherwise result is 3.
+
+```cpp
+class Solution {
+public:
+    int numSquares(int n) {
+        while(n%4 == 0)  n /= 4;
+        if(n%8 == 7) return 4;
+        for(int x=0; x*x <=n; x++){
+            int y = (int)sqrt(n - x*x);
+            if(x*x + y*y == n){
+                if(x == 0 || y == 0) return 1;
+                else return 2;
+            }
+        }
+        return 3;
+    }
+};
+```
+solution 2: Dp
+```cpp
+class Solution {
+public:
+    int numSquares(int n) {
+        vector<int> dp(n+1,n);
+        dp[0]=0;
+        for(int i=1; i<=n; i++){
+            for(int j=1; j*j <=i; j++){
+                dp[i] = min(dp[i-j*j]+1, dp[i]);
+            }
+        }
+
+        return dp[n];
+    }
+};
+
+```
