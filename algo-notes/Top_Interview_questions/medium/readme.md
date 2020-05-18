@@ -217,3 +217,41 @@ public:
   
 };
 ```
+
+
+## 50. Pow(x, n)
+
+Implement pow(x, n), which calculates x raised to the power n (xn).
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    double myPow(double x, int p) {
+        long n = p;
+        
+        double res =1;
+        
+        // If n is negative change x and make power to psoitve
+        if(n < 0){
+            x = 1/x;
+            n *=-1;
+        }
+        
+        // convert power to binary just in fast exponent process 
+        while(n){
+            
+            if(n&1) res *=x;
+            
+            n= n>>1;
+            x*=x;
+        }
+        
+        
+        return res;
+    }
+    
+};
+
+```
