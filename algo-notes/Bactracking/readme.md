@@ -613,3 +613,65 @@ public:
 
 
 ```
+
+## 131. Palindrome Partitioning
+
+Given a string s, partition s such that every substring of the partition is a palindrome.
+
+Return all possible palindrome partitioning of s.
+```
+Example:
+
+Input: "aab"
+Output:
+[
+  ["aa","b"],
+  ["a","a","b"]
+]
+
+```
+
+### Solution 
+
+```cpp
+class Solution {
+public:
+    vector<vector<string>> partition(string s) {
+        vector<vector<string>> result;
+        
+        backtrack(0,s,{},result);
+        return result;
+    }
+    
+    void backtrack(int idx,const string &s,vector<string> string_vec,vector<vector<string>> &result){
+       
+        //goal
+        if(idx == s.length()){
+            result.push_back(string_vec);
+            return;
+        }
+        
+        // choices         
+        for(int i =idx ;i< s.length();i++){
+            
+            // constraint
+            if(isPalindrome(s,idx,i)){
+                string_vec.push_back(s.substr(idx,i -idx +1));
+                backtrack(i+1,s,string_vec,result);
+                string_vec.pop_back();
+                
+            }
+        }
+        
+    }
+    
+    bool isPalindrome(const string &comb,int l,int h){
+        while(l<h){
+            if (comb[l++] != comb[h--]) return false;
+        }
+        
+        return true;
+    }
+};
+
+```
