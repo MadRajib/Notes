@@ -675,3 +675,71 @@ public:
 };
 
 ```
+
+
+## 79. Word Search
+
+Given a 2D board and a word, find if the word exists in the grid.
+
+The word can be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once.
+
+```
+Example:
+
+board =
+[
+  ['A','B','C','E'],
+  ['S','F','C','S'],
+  ['A','D','E','E']
+]
+
+Given word = "ABCCED", return true.
+Given word = "SEE", return true.
+Given word = "ABCB", return false.
+```
+
+### Solution
+
+```cpp
+class Solution {
+public:
+    bool exist(vector<vector<char>>& board, string word) {
+        vector<vector<bool>> visited(board.size(), vector<bool>(board[0].size(), false));
+        
+        for(int i = 0;i<board.size();i++){
+            for(int j=0;j<board[i].size();j++){
+                if( board[i][j] == word[0] && search_word(i,j,0,word,visited,board) ){
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    bool search_word(int r,int c,int idx,const string &word,vector<vector<bool>> &visited, vector<vector<char>>& board){
+        if(idx == word.length()) return true;
+        
+        if(r >= board.size() || r < 0 ) return false;
+        if(c >=board[r].size() || c <0 ) return false;
+        
+        if(visited[r][c]) return false;
+        
+        if(word[idx] != board[r][c]) return false;
+        
+        
+        visited[r][c] = true;
+        
+        if(search_word(r+1,c,idx+1,word,visited,board) ||  
+           search_word(r-1,c,idx+1,word,visited,board) ||
+           search_word(r,c+1,idx+1,word,visited,board) ||
+           search_word(r,c-1,idx+1,word,visited,board)){
+            return true;
+        }
+        
+        visited[r][c] = false;
+        
+        return false;
+    }
+};
+```
