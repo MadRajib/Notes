@@ -44,7 +44,7 @@ namespace mylib{
       stackNode *_top = nullptr;
 
     public:
-      bool isEmpty(){
+      bool empty(){
         return _top == nullptr;
       }
       T top(){
@@ -86,7 +86,7 @@ namespace mylib{
       queueNode *_rear = _front;
 
     public:
-      bool isEmpty(){
+      bool empty(){
         return _front == nullptr;
       }
       T front(){
@@ -107,6 +107,7 @@ namespace mylib{
         if(_front == nullptr) { throw 20;}
         queueNode* temp = _front;
         _front = _front->next;
+        if(_front == nullptr) _rear = _front;
         delete temp;
       }
   };
