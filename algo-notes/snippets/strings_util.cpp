@@ -1,8 +1,20 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 using namespace std;
+
+std::vector<std::string> split(const std::string& s, char delimiter= ' '){
+   std::vector<std::string> tokens;
+   std::string token;
+   std::istringstream tokenStream(s);
+   while (std::getline(tokenStream, token, delimiter))
+   {
+      tokens.push_back(token);
+   }
+   return tokens;
+}
 
 void process(char *bar,int e){
     // use N here
@@ -47,6 +59,11 @@ void raw_split(string s,char delim = ' '){
 int main(){
   string s = "112 12 2";
   string s1 = "112.12.2";
-  raw_split(s);
-  raw_split(s1,'.');
+  // raw_split(s);
+  // raw_split(s1,'.');
+
+  vector<string> res = split(s1,'.');
+
+  for(auto x: res) cout<<x<<" ";
+  cout<<endl;
 }
