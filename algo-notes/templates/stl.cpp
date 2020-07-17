@@ -1,4 +1,4 @@
-#include <bits/stdc++.h>
+#include <iostream>
 using namespace std;
 namespace mylib{
 
@@ -281,17 +281,17 @@ int main(){
   // cout<<"first :"<<stk1.top().first << "second: " <<stk1.top().second <<endl;
   // stk1.pop();
   
-  vector<int> v {7,1,10,4,6,9,2,11,3,5,12,8};
+  // vector<int> v {7,1,10,4,6,9,2,11,3,5,12,8};
   
-  mylib::make_heap(v.begin(), v.end());
+  // mylib::make_heap(v.begin(), v.end());
   
-  mylib::sort(v.begin(),v.end());
-  for(auto x:v) cout<<x<<" ";
-  cout<<endl;
+  // mylib::sort(v.begin(),v.end());
+  // for(auto x:v) cout<<x<<" ";
+  // cout<<endl;
 
-  mylib::sort(v.begin(),v.end(),comp);
+  // mylib::sort(v.begin(),v.end(),comp);
 
-  for(auto x:v) cout<<x<<" ";
+  // for(auto x:v) cout<<x<<" ";
 
 
 
