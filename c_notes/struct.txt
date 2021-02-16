@@ -1,0 +1,23 @@
+#print struct size
+void print_size(struct sample_t* var) {
+	printf("Size: %lu bytes\n", sizeof(*var));
+}
+
+# print struct elements in bytes
+void print_bytes(struct sample_t* var) {
+	unsigned char* ptr = (unsigned char*)var;
+	for (int i = 0; i < sizeof(*var); i++, ptr++) {
+		printf("%d ", (unsigned int)*ptr);
+	}
+	printf("\n");
+}
+
+
+#create packed struct
+
+struct __attribute__((__packed__)) sample_t {
+	char first;
+	char second;
+	char third;
+	short fourth;
+} ;
