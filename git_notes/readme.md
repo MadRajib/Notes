@@ -9,3 +9,11 @@ $ git config set --global user.email "your-email@example.com"
 ```bash
 $ git config set --global init.defaultBranch main
 ```
+3. To view the diff for things in staged
+```bash
+$ git diff --staged
+```
+4. To unstage a file added accidently
+```bash
+$ git restore --staged hello.py
+```
