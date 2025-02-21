@@ -17,3 +17,8 @@ $ git diff --staged
 ```bash
 $ git restore --staged hello.py
 ```
+5. To commit a change in a file without staging it. Works for both tracked and untracked files.
+```bash
+$ git commit -m "foo bar" foo.txt
+```
+6. 
