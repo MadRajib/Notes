@@ -7,8 +7,12 @@ $ git config --global user.email "your-email@example.com"
 ```
 2. To rename branch name from __master__ to other 
 ```bash
+//NOTE: This setting only applies to new repositories initialized with git init.
 $ git config --global init.defaultBranch main
+//NOTE: Existing repositories will not be affected. If you need to rename an existing branch from master to main
+$ git branch -m master main
 ```
+
 3. To view the diff for things in staged
 ```bash
 $ git diff --staged
