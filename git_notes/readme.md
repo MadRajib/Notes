@@ -2,12 +2,12 @@
 
 1. To configure your name and email global
 ```bash
-$ git config set --global user.name "Your name"
-$ git config set --global user.email "your-email@example.com"
+$ git config --global user.name "Your name"
+$ git config --global user.email "your-email@example.com"
 ```
 2. To rename branch name from __master__ to other 
 ```bash
-$ git config set --global init.defaultBranch main
+$ git config --global init.defaultBranch main
 ```
 3. To view the diff for things in staged
 ```bash
