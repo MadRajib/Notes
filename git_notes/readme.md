@@ -156,4 +156,59 @@ __13.__ Creating a new branch
 ```bash
 $ git switch main
 $ git switch -c newbranch // -c to create
+
+// Now head points to newbranch instead of main
 ```
+__14.__ merging: Fast-Forward
+This occurs when the branch you’re merging from is a direct descendant of the branch you’re merging into.
+eg:
+```bash
+A -- B -- C (main)
+
+$ git checkout -b feature
+
+A -- B -- C (main, feature)
+// adding commits in feature
+A -- B -- C -- D -- E (feature)
+
+$ git checkout main
+$ git merge feature
+
+Since main has no new commits after C, Git can simply move the main pointer forward to E:
+A -- B -- C -- D -- E (main)
+```
+
+A fast-forward merge only happens if the branch being merged is a direct descendant of the target branch.
+
+❌ If main has new commits after branching, Git cannot fast-forward:
+```bash
+A -- B -- C -- D -- E (feature)
+ \
+  -- F -- G (main)
+
+$ git checkout main
+$ git merge feature
+
+       D -- E (feature)
+      /
+A -- B -- C -- F -- G -- M (main)
+Here, Git creates a merge commit (M) to combine historie
+```
+
+Forcing a Merge Commit Instead of Fast-Forward
+```bash
+$ git merge --no-ff feature
+
+            D -- E (feature)
+           /
+A -- B -- C -- M (main)
+```
+✅ Use Fast-Forward Merge When:
+* The branch is a direct descendant of the target branch.
+* You don’t need a merge commit.
+* You want a simple, linear history.
+
+❌ Avoid Fast-Forward Merge When:
+* You want to preserve feature branch history.
+* You want a record of when the branch was merged (--no-ff).
+* The branches have diverged (a merge commit is required).
