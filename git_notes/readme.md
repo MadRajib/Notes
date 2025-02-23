@@ -63,4 +63,21 @@ $ git switch main
   Previous HEAD position was 5a02fed Added
   Switched to branch 'main'
 ```
-
+8. To deatch head from main and point to commit
+```bash
+$ git switch --detach HEAD
+```
+9. To detach HEAD to one commit before
+```bash
+$ git switch --detach HEAD^
+// can use @ in place of HEAD
+$ git switch --detach @^     # Same thing
+```
+To go to 3rd previous commit
+```bash
+$ git switch --detach HEAD^^^
+```
+Better way
+```bash
+$ git switch --detach HEAD~3
+```
