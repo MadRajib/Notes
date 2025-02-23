@@ -25,4 +25,42 @@ $ git restore --staged hello.py
 ```bash
 $ git commit -m "foo bar" foo.txt
 ```
-6. 
+6. To switch to a specific commit
+```bash
+$ git switch --detach 5a02fe
+
+HEAD is now at 5a02fed
+$ git log
+commit 5a02fede3007edf55d18e2f9ee3e57979535e8f2 (HEAD)
+Author: User <user@example.com>
+Date:   Thu Feb 1 09:24:52 2024 -0800
+
+    Added
+```
+This will detach the HEAD from main and point
+to the specific commit. HEAD is now in Detach state
+
+Head intial points to main branch
+```bash
+commit 5e8cb52cb813a371a11f75050ac2d7b9e15e4751 (HEAD -> main)
+Author: User Name <user@example.com>
+Date:   Thu Feb 1 12:36:13 2024 -0800
+
+    More output
+
+commit 5a02fede3007edf55d18e2f9ee3e57979535e8f2
+Author: User Name <user@example.com>
+Date:   Thu Feb 1 09:24:52 2024 -0800
+
+    Added
+```
+7. To reattach the head
+```bash
+// jump to previous place
+$ git switch -
+// jump to main explicitly
+$ git switch main
+  Previous HEAD position was 5a02fed Added
+  Switched to branch 'main'
+```
+
