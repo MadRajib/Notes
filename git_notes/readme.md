@@ -151,3 +151,9 @@ __12.__ Recalling that the main branch is just a label for a specific commit, ho
 It does it like this: the branch that HEAD points to follows the current commit. That is, when you make a commit, the branch HEAD points to moves along to that next commit.
 
 Contrast that to detached head state. If we were there, a new commit would get us to a new state, leaving main alone.
+
+__13.__ Creating a new branch
+```bash
+$ git switch main
+$ git switch -c newbranch // -c to create
+```
