@@ -81,3 +81,66 @@ Better way
 ```bash
 $ git switch --detach HEAD~3
 ```
+10. git merge commit vs git rebase
+
+If remote is ahead of local repo, if git pull is performed
+by default a new merge commit is created.
+```bash
+A -- B -- C (remote)
+A -- B -- D (local)
+
+$ git pull
+-> feteches the latest changes
+-> merges the remote changes into your local branch
+A -- B -- C (remote)
+A -- B -- D  -- M(merge commit) (local)
+```
+if run pull with rebase then:
+```bash
+$ git pull
+A -- B -- C (remote)
+A -- B -- C -- D (local)
+```
+
+A merge commit is a special commit that gets created
+when merging two branches. It has two parents commit.
+eg :
+```bash
+A -- B -- C   (main)
+
+A -- B -- C  (main)
+       \
+        D -- E  (feature)
+
+$ git checkout main
+$ git merge feature
+
+       D -- E  (feature)
+      /        
+A -- B -- C -- M  (main)
+
+M is the merge commit that joins the changes from both the commit.
+```
+* Preserves History – It keeps the history of both branches as they were before merging.
+
+It we perform git rebase before we pull from remote
+```bash
+A -- B -- C (main)
+          \
+           X -- Y (feature)
+
+$ git checkout feature
+$ git rebase main
+
+A -- B -- C -- X' -- Y' (main)
+```
+* Origianl history of feature is lost
+
+11. To perform rebase during pull
+```bash
+$ git config --global pull.rebase false
+```
+
+Conclusion
+* git pull with merge (pull.rebase=false) creates a merge commit when branches diverge.
+* git pull --rebase rebases your commits on top of the remote changes, making the history linear.
