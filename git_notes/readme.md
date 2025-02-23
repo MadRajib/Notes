@@ -212,3 +212,21 @@ A -- B -- C -- M (main)
 * You want to preserve feature branch history.
 * You want a record of when the branch was merged (--no-ff).
 * The branches have diverged (a merge commit is required).
+
+__14.__ Deleting a branch
+If you’re done merging your branch, it’s easy to delete it. Importantly, this doesn’t delete any commits; it just deletes the branch “label” so you can’t use it any longer.
+```bash
+$ git commit -m "finished with topic1"   # on topic1 branch
+$ git switch main
+$ git merge topic1         # merge topic1 into main
+
+$ git branch -d topic1
+  Deleted branch topic1 (was 3be2ad2).
+```
+
+__A topic branch is what we call a local branch made for a single topic like a feature, bug fix, etc__
+
+But what if you were working on a branch and wanted to abandon it before you merge it into something? For that, we have the more imperative Capital D option, which means, “I really mean it. Delete this unmerged branch!”
+```bash
+$ git branch -D topic1
+```
