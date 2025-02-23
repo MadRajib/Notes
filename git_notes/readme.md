@@ -1,11 +1,11 @@
-## Notes referenced from Beej's guide to git [text](https://beej.us/guide/bggit/)
+user## Notes referenced from Beej's guide to git [text](https://beej.us/guide/bggit/)
 
-1. To configure your name and email global
+__1.__ To configure your name and email global
 ```bash
 $ git config --global user.name "Your name"
 $ git config --global user.email "your-email@example.com"
 ```
-2. To rename branch name from __master__ to other 
+__2.__ To rename branch name from __master__ to other 
 ```bash
 //NOTE: This setting only applies to new repositories initialized with git init.
 $ git config --global init.defaultBranch main
@@ -13,19 +13,19 @@ $ git config --global init.defaultBranch main
 $ git branch -m master main
 ```
 
-3. To view the diff for things in staged
+__3.__ To view the diff for things in staged
 ```bash
 $ git diff --staged
 ```
-4. To unstage a file added accidently
+__4.__ To unstage a file added accidently
 ```bash
 $ git restore --staged hello.py
 ```
-5. To commit a change in a file without staging it. Works for both tracked and untracked files.
+__5.__ To commit a change in a file without staging it. Works for both tracked and untracked files.
 ```bash
 $ git commit -m "foo bar" foo.txt
 ```
-6. To switch to a specific commit
+__6.__ To switch to a specific commit
 ```bash
 $ git switch --detach 5a02fe
 
@@ -54,7 +54,7 @@ Date:   Thu Feb 1 09:24:52 2024 -0800
 
     Added
 ```
-7. To reattach the head
+__7.__ To reattach the head
 ```bash
 // jump to previous place
 $ git switch -
@@ -63,11 +63,11 @@ $ git switch main
   Previous HEAD position was 5a02fed Added
   Switched to branch 'main'
 ```
-8. To deatch head from main and point to commit
+__8.__ To deatch head from main and point to commit
 ```bash
 $ git switch --detach HEAD
 ```
-9. To detach HEAD to one commit before
+__9.__ To detach HEAD to one commit before
 ```bash
 $ git switch --detach HEAD^
 // can use @ in place of HEAD
@@ -81,7 +81,7 @@ Better way
 ```bash
 $ git switch --detach HEAD~3
 ```
-10. git merge commit vs git rebase
+__10.__ git merge commit vs git rebase
 
 If remote is ahead of local repo, if git pull is performed
 by default a new merge commit is created.
@@ -136,7 +136,7 @@ A -- B -- C -- X' -- Y' (main)
 ```
 * Origianl history of feature is lost
 
-11. To perform rebase during pull
+__11.__ To perform rebase during pull
 ```bash
 $ git config --global pull.rebase false
 ```
@@ -144,3 +144,10 @@ $ git config --global pull.rebase false
 Conclusion
 * git pull with merge (pull.rebase=false) creates a merge commit when branches diverge.
 * git pull --rebase rebases your commits on top of the remote changes, making the history linear.
+
+
+__12.__ Recalling that the main branch is just a label for a specific commit, how does the main branch know to “follow” our HEAD from commit to commit?
+
+It does it like this: the branch that HEAD points to follows the current commit. That is, when you make a commit, the branch HEAD points to moves along to that next commit.
+
+Contrast that to detached head state. If we were there, a new commit would get us to a new state, leaving main alone.
