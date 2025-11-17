@@ -53,6 +53,18 @@ __Note:__
 ### Compatible types
 * what it means in C for two types to be compatible.
 * Declaring a function or variable twice is valid in C only if the two declarations specify compatible types.
+* In C, two different primitive types are never compatible.
+* Likewise for the defined types struct, union and enum: two separately defined types are incompatible unless they are defined exactly the same way.
+
+
+However, there are a few cases where different types can be compatible:
+* Every enumeration type is compatible with some integer type. In GNU C, the choice of integer type depends on the largest enumeration value.
+* Array types are compatible if the element types are compatible and the sizes (when specified) match.
+* Pointer types are compatible if the pointer target types are compatible.
+* Function types that specify argument types are compatible if the return types are compatible and the argument types are compatible, argument by argument. In addition, they must all agree in whether they use ... to allow additional arguments.
+* function types that don’t specify argument types are compatible if the return types are.
+* Function types that specify the argument types are compatible with function types that omit them, if the return types are compatible and the specified argument types are unaltered by the argument promotions.
+
 
 Valid:
 ```c
@@ -115,3 +127,79 @@ int process(int data);
 int process(char data); // ERROR: Conflicting types for 'process'
                         // The parameter type 'char' is not compatible with 'int'
 ```
+* they must agree in their type qualifiers.
+* Thus, const int and int are incompatible. It follows that const int * and int * are incompatible too (they are pointers to types that are not compatible).
+
+* If two types are compatible ignoring the qualifiers, we call them nearly compatible.
+* Comparison of pointers is valid if the pointers’ target types are nearly compatible.
+* If two types are compatible ignoring the qualifiers, and the first type has all the qualifiers of the second type, we say the first is upward compatible with the second.
+* Assignment of pointers requires the assigned pointer’s target type to be upward compatible with the right operand (the new value)’s target type.
+
+
+
+* In addition, some operations on pointers require operands to have compatible target types.
+
+```c
+int value = 10;
+int* p1 = &value;
+int* p2;
+
+p2 = p1; // VALID: 'int*' is compatible with 'int*'
+
+float pi = 3.14f;
+float* pf = &pi;
+int* pi;
+
+// ILLEGAL: Compiler will stop this.
+pi = pf; // ERROR: 'int*' is not compatible with 'float*'
+
+
+int scores[] = { 90, 80, 100 };
+int* p1 = &scores[0]; // Points to 90
+int* p2 = &scores[2]; // Points to 100
+
+if (p1 < p2) { // VALID: 'int*' is compatible with 'int*'
+    // This is true
+}
+
+int i;
+float f;
+int* pi = &i;
+float* pf = &f;
+
+// ILLEGAL:
+if (pi == pf) { ... } // ERROR: Comparing incompatible 'int*' and 'float*'
+
+int scores[] = { 90, 80, 100 };
+int* p1 = &scores[0]; // Points to 90
+int* p2 = &scores[2]; // Points to 100
+
+// Result is 2 (i.e., 2 'int' elements)
+ptrdiff_t diff = p2 - p1;
+
+int i;
+float f;
+int* pi = &i;
+float* pf = &f;
+
+// ILLEGAL:
+ptrdiff_t diff = pi - pf; // ERROR: Incompatible pointer types
+```
+* The Big Exception: __void*__ (The Generic Pointer)
+
+    * The void* type is the one exception to these rules. It is a "generic" pointer that can hold the address of any data type.
+    * A void* is compatible for assignment and comparison with all other data pointer types (int*, float*, char*, etc.). This is why malloc returns a void* (it can be assigned to any pointer type) and free accepts a void* (it can free any pointer).
+```cpp
+int x = 10;
+int* pi = &x;
+
+// 1. Assignment
+void* pv = pi;  // ✅ Valid: 'int*' can be assigned to 'void*'
+pi = pv;      // ✅ Valid: 'void*' can be assigned back to 'int*'
+
+// 2. Comparison
+if (pi == pv) { // ✅ Valid: Any pointer can be compared to 'void*'
+    // ...
+}
+```
+* The Limitation: You cannot perform pointer arithmetic (like pv + 1 or pv - pv) on a void*. The compiler doesn't know the target type's size, so it has no sizeof(...) to use.
