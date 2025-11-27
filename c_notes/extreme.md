@@ -12,3 +12,23 @@ Some of it uses:
 - header guards
 = code generation
 - conditional compilation
+- and many more
+
+```c
+#define FOO 4   // defining
+
+#undef FOO      // undefining
+
+#define FOO(a, b) a + b // function like macro
+
+error("Platfrom not defined!"); // throw error while preprocessing phase 
+```
+- modern C compilers are aware of C preprocessor directives. 
+- they know about the source before entering the preprocessing phase.
+
+- To see preprocessing result use __E__ option  with gcc or clang.
+```bash
+$ clang -E example.c
+```
+- *__Translation Unit__* ( or compilation uinit): is the preprocessed C code that is ready to be passed to the compiler.
+    - In a TU all directives are substitued with inclusion or macro expansions and a flat long piece of C code has been produced.
