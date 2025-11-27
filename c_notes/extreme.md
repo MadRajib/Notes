@@ -32,3 +32,4 @@ $ clang -E example.c
 ```
 - *__Translation Unit__* ( or compilation uinit): is the preprocessed C code that is ready to be passed to the compiler.
     - In a TU all directives are substitued with inclusion or macro expansions and a flat long piece of C code has been produced.
+- To define a new __domain specific language (DSL)__ and write code using it, is an important application of macros. 
