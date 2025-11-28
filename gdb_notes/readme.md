@@ -57,11 +57,31 @@ To jmp to next line
 To get more context 
 ```bash
 (gdb) list
-
+1       #include <stdio.h>
+2
+3       int main(int argc, char **argv) {
+4
+5               int a;
+6               int b;
+7
+8               printf("hello world\n");
+9
+10              return 0;
 ```
 
 TUI: Text User Interface
 
 ```bash
 crtl + x + a : -> Toggle to/enable TUI enale
+or 
+(gdb) tui eanble
+
+ctrl + l -> Refresh the screen
+
+ctrl + n -> next cmd
+ctrl + p -> previous cmd
+
+ctrl + x + 2 -> create split window
+ctrl + x  + 2 (again) -> to toggle between the two window
+
 ```
