@@ -49,6 +49,17 @@ or
 (gdb) start    // Runs the exectuable and puts a break in main
 ```
 
+To jmp to next line
+
+```bash
+(gdb) next
+```
+To get more context 
+```bash
+(gdb) list
+
+```
+
 TUI: Text User Interface
 
 ```bash
