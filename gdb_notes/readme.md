@@ -846,3 +846,31 @@ eg.
 ```bash
 (gdb) set dprintf-channel /tmp/debug.log
 ```
+
+### Creating custom commands
+```python
+class my_command(gdb.Command):
+    '''doc string'''
+
+    def __init__(self):
+        gdb.Command.__init__(self, 'my-command', gdb.COMMAND_NONE)
+
+    def invoke(self, args, from_tty):
+        do_bunch_of_python()
+
+# Register the command
+my_command()
+```
+- GDB Python Event Hooks (Stop Events)
+- GDB can call your Python functions when certain debugger events occur
+— breakpoints, signals, stops, thread creation, exits, etc.
+```bash
+def stop_handler(ev):
+    print('stop event!')
+    if isinstance(ev, gdb.SignalEvent):
+        print('its a signal: ' + ev.stop_signal)
+    if isinstance(ev, gdb.BreakpointEvent):
+        print("[Python] Breakpoint hit:", ev.breakpoint)
+
+gdb.events.stop.connect(stop_handler)
+```
