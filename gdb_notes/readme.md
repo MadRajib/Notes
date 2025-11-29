@@ -737,6 +737,25 @@ Used for multi-run analysis.
 $1 = 2
 ```
 ### Non-stop mode
+- Normally, when a thread hits a breakpoint, all threads stop.
+- Non-stop mode changes this behaviour:
+    - Only the stopped thread is halted
+    - Other threads keep running
+    - You can debug one thread while others continue executing
+```bash
+(gdb) set non-stop on
+This must be done before running the program.
+
+(gdb) continue -a
+
+* -a = continue all threads
+* Thread that hits breakpoint stops
+* Other threads continue running
+```
+If pagination is on, GDB may freeze or behave unpredictably in non-stop mode.
+```bash
+(gdb) set pagination off
+```
 ### Thread apply
 ### Calling inferior functions
 
