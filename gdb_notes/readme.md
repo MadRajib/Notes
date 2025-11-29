@@ -85,3 +85,37 @@ ctrl + x + 2 -> create split window
 ctrl + x  + 2 (again) -> to toggle between the two window
 
 ```
+
+- Can run python script inside
+```bash
+(gdb) python print('hello world')
+hello world
+
+(gdb) python
+> import os
+> end               // to exit
+(gdb)
+```
+- can run shell commands
+```bash
+(gdb) shell ps
+(gdb) shell ls
+```
+- python is not runned by forking a new process but with gdb itself.
+- you can see the pid printed and ps are the same
+```bash
+(gdb) python
+>import os
+>print(os.getpid())
+>
+>end
+2109
+hi
+(gdb) shell ps
+    PID TTY          TIME CMD
+    287 pts/0    00:00:00 bash
+   2109 pts/0    00:00:01 gdb
+   2127 pts/0    00:00:00 a.out
+   2210 pts/0    00:00:00 ps
+(gdb)
+```
