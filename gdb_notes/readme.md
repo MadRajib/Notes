@@ -789,5 +789,24 @@ Meaning:
     * This is the most detailed dump of all thread states.
 ```
 ### Calling inferior functions
+- call <function>() lets you execute functions inside the program you are debugging ("inferior").
 
+```bash
+(gdb) call foo()
+(gdb) print foo() // calls foo and prints the return value
+(gdb) print foo+bar     # in C++, may invoke overloaded operators
+(gdb) print errno       # can call errno's accessor function on some systems
+```
+- Dangerous example — implicitly calling multiple functions
+```bash
+(gdb) call strcpy(buffer, "Hello, world!\n")
+
+This may invoke more than one function, e.g.:
+
+    * strcpy()
+    * malloc() (if buffer is dynamically managed)
+    * internal memory helpers
+
+This can modify memory in ways you did not expect.
+```
 ### Dynamic Printf
