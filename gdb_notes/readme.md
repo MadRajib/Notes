@@ -621,12 +621,23 @@ type = long [32]
 ### Breakpoints
 
 ```bash
-    tbreak          // temporary breakpoint
-    rbreak          // break on regular expression match
-    break foo thread 3 // stop at foo only in thread 3
-    break foo if bar > 10 // stop at foo only if bar > 3
+    tbreak                  // temporary breakpoint
+    rbreak                  // break on regular expression match
+    break foo thread 3      // stop at foo only in thread 3
+    break foo if bar > 10   // stop at foo only if bar > 3
 
-    delete [n]          // delete breakpoint number n
-    delete [n]          // disable breakpoint number n
-    enable [n]          // enable breakpoint number n
+    delete [n]              // delete breakpoint number n
+    delete [n]              // disable breakpoint number n
+    enable [n]              // enable breakpoint number n
+```
+### Watchpoints
+- watching an expression
+```bash
+watch foo               // stop when foo is modified
+watch -l foo            // watch location
+rwatch foo              // stop when foo is read
+watch foo thread 3      // stop when thread 3 modifes foo
+watch foo if foo > 10   // stop when foo is > 10
+
+delete/disable/enable work for watchpoints too!
 ```
