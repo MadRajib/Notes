@@ -757,6 +757,37 @@ If pagination is on, GDB may freeze or behave unpredictably in non-stop mode.
 (gdb) set pagination off
 ```
 ### Thread apply
+- thread apply lets you run a GDB command on specific threads or on all threads
+```bash
+(gdb) thread apply 1-4 print $sp
+
+Meaning:
+* Apply to threads 1, 2, 3, 4
+* Command: print $sp
+* Shows the stack pointer register for each of these threads
+```
+- Backtrace for all threads
+```bash
+(gdb) thread apply all backtrace
+
+Meaning:
+* Run backtrace (bt) for every thread
+* Shows each thread’s call stack
+* Useful when debugging crashes or deadlocks.
+```
+- Full backtrace for all threads
+```bash
+(gdb) thread apply all backtrace full
+
+Meaning:
+
+* Full backtrace including:
+    * local variables
+    * function arguments
+    * register states (in some builds)
+    * frame info
+    * This is the most detailed dump of all thread states.
+```
 ### Calling inferior functions
 
 ### Dynamic Printf
