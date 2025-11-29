@@ -320,6 +320,11 @@ To get more context
 TUI: Text User Interface
 
 ```bash
+(gdb) foucs cmd // focus set to cmd window
+“ctrl-x,o”  is another way to change the focus between the different tui sections (“o” as in “other”)
+```
+
+```bash
 crtl + x + a : -> Toggle to/enable TUI enale
 or 
 (gdb) tui eanble
@@ -531,6 +536,17 @@ gdb.printing.register_pretty_printer(gdb.current_objfile(), pp)
 (gdb) print st
 $2 = month = 9
 id: 123 name=0x5555555592a0 "jon doe" dob=Mon Sep  2 09:30:00 2000
+```
+
+#### Custom Prompts
+Default:
+```bash
+   (gdb)
+```
+Static - use this to identfiy a particular GDB session:
+```bash
+set prompt <prompt>
+show prompt
 ```
 
 ### Reverse Debugging
