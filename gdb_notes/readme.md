@@ -641,3 +641,12 @@ watch foo if foo > 10   // stop when foo is > 10
 
 delete/disable/enable work for watchpoints too!
 ```
+### Catchpoints
+- Are like breakpoints but catch certain events, such as C++ exceptions.
+```bash
+catch catch             // to stop when c++ exception are caught
+catch syscall nanosleep // to stop at nanosleep system call
+catch syscall 100       // to stop at system call number 100
+
+delete/disable/enable work for catchpoints too!
+```
