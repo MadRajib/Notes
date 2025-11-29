@@ -85,7 +85,7 @@ Stack level 2, frame at 0xbffffa8c:
  Arglist at 0xbffffa8c, args: argc=1, argv=0xbffffaf4
  Locals at 0xbffffa8c, Previous frame's sp is 0x0
  Saved registers:
-  ebp at 0xbffffa8c, eip at 0xbffffa90
+ ebp at 0xbffffa8c, eip at 0xbffffa90
 
 (gdb) info locals
 x = 30
@@ -138,7 +138,7 @@ Skip Breakpoints
 Will ignore next 5 crossings of breakpoint 2.
 ```
 
-- Trick
+### Tricks
 
 ```bash
 $ gdb a.out
