@@ -569,7 +569,10 @@ gdb.prompt_hook = my_prompt_hook
 ```bash
 (gdb) advance 24
 ```
-
+- set source window height
+```bash
+(gdb) winheight src 8
+```
 ### Reverse Debugging
 
 Load core file
@@ -603,3 +606,14 @@ $ gdb -c core.26529
 (gdb) whatis array
 type = long [32]  
 ```
+
+### Remote server server
+- Debug over serial/socket to a remote server
+- Start
+    ```bash
+    $ gdbserver localhost:2000 ./a.out
+    ```
+- Then connect from a gdb with:
+    ```bash
+    (gdb) target remote localhost:2000
+    ```
