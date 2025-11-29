@@ -810,3 +810,39 @@ This may invoke more than one function, e.g.:
 This can modify memory in ways you did not expect.
 ```
 ### Dynamic Printf
+- Dynamic printf (dprintf) lets you insert printf()-like log statements into running code without recompiling.
+Useful when you cannot modify source or rebuild.
+
+```bash
+(gdb) dprintf mutex.c:100, "m is %p m->magic is %u\n", m, m->magic
+
+This means:
+
+* Set a hidden breakpoint at mutex.c:100
+* When the line executes, print the formatted string
+* Continue execution automatically (no stop)
+
+It behaves like inserting a temporary printf() in the code.
+```
+- How to control dprintf behavior
+```bash
+(gdb) set dprintf-style gdb|call|agent
+
+Style	How it works
+---------------------
+gdb	    GDB prints the message (default). Slow.
+call	Calls the inferior’s printf() function. May change state.
+agent	Uses GDB's in-process agent (fast, safe). Used for non-stop mode / async debugging.
+````
+- Use a different function instead of printf
+```bash
+(gdb) set dprintf-function fprintf
+eg. 
+(gdb) set dprintf-function fprintf
+(gdb) dprintf file.c:50, "Error: %d\n", err
+```
+
+- Choose the output channel (file, log, pipe…)
+```bash
+(gdb) set dprintf-channel /tmp/debug.log
+```
