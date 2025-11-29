@@ -281,6 +281,11 @@ End of assembler dump.
 
 ```bash
 $ gdb a.out
+
+(gdb) set history save on
+(gdb) set print pretty on
+(gdb) set pagination off
+(gdb) set confirm off
 ...
 
 (gdb) break main
@@ -528,3 +533,35 @@ id: 123 name=0x5555555592a0 "jon doe" dob=Mon Sep  2 09:30:00 2000
 ```
 
 ### Reverse Debugging
+
+Load core file
+```bash
+$ gdb -c core.26529
+```
+```bash
+(gdb) break main
+(gdb) break _exit
+
+// hook cmds when breakpoint is it
+(gdb) command 2  // to run on breakpoint 2
+>record
+>continue
+>end
+
+(gdb) command 3
+>run
+>end
+
+(gdb) r
+// code will keep on runing after exiting untill it breaks
+
+(gdb) bt
+...
+...
+
+// step reverse in instructions
+(gdb) reverse-stepi
+(gdb) reverse-continue
+(gdb) whatis array
+type = long [32]  
+```
