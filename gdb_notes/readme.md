@@ -874,3 +874,47 @@ def stop_handler(ev):
 
 gdb.events.stop.connect(stop_handler)
 ```
+### Other cool stuffs
+```bash
+display <expr>              
+    # Show the value of <expr> every time the program stops.
+
+advance <location>          
+    # Run until reaching <location>, then stop.
+    # Works like a one-shot breakpoint that clears itself.
+
+until <location>            
+    # Continue execution until the program counter reaches <location>.
+    # Unlike 'next', it does not step line-by-line.
+
+command <bpnum>             
+    # Attach custom commands to a breakpoint.
+    # Example:
+    #   (gdb) command 3
+    #   > print x
+    #   > continue
+    #   > end
+
+silent                      
+    # Suppress all output from a breakpoint.
+    # Useful if the breakpoint is hit many times and you don’t want spam.
+
+save breakpoints <file>     
+    # Save all current breakpoints to a text file.
+    # Can be restored later using: (gdb) source <file>
+
+save history <file>         
+    # Save your GDB command history to a file.
+
+info line foo.c:42          
+    # Show the program counter (PC) for line 42 in foo.c.
+    # Helps map source lines to addresses.
+
+info line *$pc              
+    # Show the line begin/end addresses corresponding to the current PC.
+    # Useful when disassembling around the current instruction.
+
+# Bonus Notes:
+#   gcc’s -g and -O are orthogonal.
+#   gcc -Og keeps code optimized but still debuggable.
+```
