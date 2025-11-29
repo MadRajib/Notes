@@ -138,6 +138,47 @@ Skip Breakpoints
 Will ignore next 5 crossings of breakpoint 2.
 ```
 
+Set a write watchpoint for a variable:
+```bash
+(gdb) watch x
+Hardware watchpoint 4: x
+(gdb) c
+Continuing.
+Hardware watchpoint 4: x
+
+Old value = -1073743192
+New value = 11
+main (argc=1, argv=0xbffffaf4) at test.c:10
+10      return 0;
+```
+set a read watchpoint for a variable:
+```bash
+(gdb) rwatch y 
+Hardware read watchpoint 4: y
+(gdb) continue
+Continuing.
+Hardware read watchpoint 4: y
+
+Value = 1073792976
+main (argc=1, argv=0xbffffaf4) at test.c:8
+8         x = y;
+```
+Set a read/write watchpoint for a variable:
+- Use the awatch command. Usage is identical to the watch command.
+
+Disable Watchpoints
+- Active watchpoints show up the breakpoint list.
+- Use the info breakpoints command to get this list. Then use the disable command to turn off a watchpoint, just like disabling a breakpoint.
+```bash
+(gdb) info breakpoints
+Num Type           Disp Enb Address    What
+1   breakpoint     keep y   0x080483c6 in main at test.c:5
+        breakpoint already hit 1 time
+4   hw watchpoint  keep y   x
+        breakpoint already hit 1 time
+(gdb) disable 4
+```
+
 ### Tricks
 
 ```bash
