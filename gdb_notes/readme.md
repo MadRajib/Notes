@@ -119,3 +119,33 @@ hi
    2210 pts/0    00:00:00 ps
 (gdb)
 ```
+- python can interact with gdb
+```bash
+(gdb) python gdb.execute() // to do gdb commands
+(gdb) python gdb.execute('next')
+hello world
+10              return 0;
+(gdb)
+
+(gdb) python gdb.parse_and_eval() // to get data from inferior
+(gdb) python help('gdb')  // to see online help
+
+// Setting breakpoints
+
+(gdb) python bp = gdb.Breakpoint('test.c:2')
+
+// Disable Breakpoint
+(gdb) python bp.enabled = False
+
+// Get all the breakpoints
+(gdb) python bps = gdb.breakpoints()
+(gdb) python
+>print(bps)
+>end
+(<gdb.Breakpoint number=2 hits=1>, <gdb.Breakpoint disabled number=3 hits=0>)
+
+// get breakpoint locations 
+(gdb) python print(bps[0].location)
+main
+(gdb)
+```
