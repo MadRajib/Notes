@@ -33,8 +33,111 @@ $ gdb a.out
 // without printing the fron material
 $ gdb --silent
 
-$ gdb -help 
+$ gdb -help
 ```
+Modify variables
+- NOTE: in newer versions of gdb, it may be necessary to use the command 'set var', as in 'set var x = 3'
+
+```bash
+(gdb) set x = 3
+(gdb) print x
+$4 = 3
+```
+Call functions linked into the program
+```bash
+(gdb) call abort()
+```
+Return from a function
+- Use the finish command to have a function finish executing and return to it's caller
+```bash
+(gdb) finish
+Run till exit from #0  fun1 () at test.c:5
+main (argc=1, argv=0xbffffaf4) at test.c:17
+17        return 0;
+Value returned is $1 = 1
+```
+To get backtrace
+- Use the gdb command backtrace. In the backtrace below, we can see that we are currently inside func2(), which was called bu func1(), which was called from main()
+```bash
+(gdb) backtrace
+#0  func2 (x=30) at test.c:5
+#1  0x80483e6 in func1 (a=30) at test.c:10
+#2  0x8048414 in main (argc=1, argv=0xbffffaf4) at test.c:19
+#3  0x40037f5c in __libc_start_main () from /lib/libc.so.6
+(gdb)
+```
+change stack frames?
+- Use the gdb command frame. Notice in the backtrace above that each frame has a number beside it. Pass the number of the frame you want as an argument to the command.
+```bash
+(gdb) frame 2
+#2  0x8048414 in main (argc=1, argv=0xbffffaf4) at test.c:19
+19        x = func1(x);
+(gdb)
+```
+examine stack frames?
+- To look at the contents of the current frame, there are 3 useful gdb commands. info frame displays information about the current stack frame. info locals displays the list of local variables and their values for the current stack frame, and info args displays the list of arguments.
+```bash
+(gdb) info frame
+Stack level 2, frame at 0xbffffa8c:
+ eip = 0x8048414 in main (test.c:19); saved eip 0x40037f5c
+ called by frame at 0xbffffac8, caller of frame at 0xbffffa5c
+ source language c.
+ Arglist at 0xbffffa8c, args: argc=1, argv=0xbffffaf4
+ Locals at 0xbffffa8c, Previous frame's sp is 0x0
+ Saved registers:
+  ebp at 0xbffffa8c, eip at 0xbffffa90
+
+(gdb) info locals
+x = 30
+s = 0x8048484 "Hello World!\n"
+
+(gdb) info args
+argc = 1
+argv = (char **) 0xbffffaf4
+```
+
+Set break points
+```bash
+(gdb) break 19
+Breakpoint 1 at 0x80483f8: file test.c, line 19
+
+(gdb) break test.c:19
+Breakpoint 2 at 0x80483f8: file test.c, line 19
+
+(gdb) break func1
+Breakpoint 3 at 0x80483ca: file test.c, line 10
+
+// break point on a cpp function
+(gdb) break TestClass::testFunc(int) 
+Breakpoint 1 at 0x80485b2: file cpptest.cpp, line 16.
+```
+
+How to set a temporary breakpoint ?
+- Use the tbreak command instead of break. A temporary breakpoint only stops the program once, and is then removed.
+
+List all breakpoints
+```bash
+(gdb) info breakpoints
+Num Type           Disp Enb Address    What
+2   breakpoint     keep y   0x080483c3 in func2 at test.c:5
+3   breakpoint     keep y   0x080483da in func1 at test.c:10
+```
+Disable Breakpoints
+```bash
+(gdb) disable 2
+(gdb) info breakpoints
+Num Type           Disp Enb Address    What
+2   breakpoint     keep n   0x080483c3 in func2 at test.c:5
+3   breakpoint     keep y   0x080483da in func1 at test.c:10
+```
+
+Skip Breakpoints
+- The ignore command takes two arguments: the breakpoint number to skip, and the number of times to skip it.
+```bash
+(gdb) ignore 2 5
+Will ignore next 5 crossings of breakpoint 2.
+```
+
 - Trick
 
 ```bash
@@ -284,3 +387,5 @@ gdb.printing.register_pretty_printer(gdb.current_objfile(), pp)
 $2 = month = 9
 id: 123 name=0x5555555592a0 "jon doe" dob=Mon Sep  2 09:30:00 2000
 ```
+
+### Reverse Debugging
