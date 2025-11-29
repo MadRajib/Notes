@@ -650,3 +650,94 @@ catch syscall 100       // to stop at system call number 100
 
 delete/disable/enable work for catchpoints too!
 ```
+// Todo
+### Multiple porcess debugging
+
+- GDB calls each debugged program an inferior.
+- Forks, execs, and multiple processes = multiple inferiors.
+
+To Controls which process GDB follows after a fork().
+- child → Debug the child process after fork
+- parent → Stay with the parent process
+
+```bash
+(gdb) set follow-fork-mode child
+
+If your program forks, GDB will switch to the child automatically
+```
+- By default, GDB detaches from the process it doesn’t follow
+- Setting this to off keeps both processes under GDB control.
+
+```bash
+(gdb) set detach-on-fork off
+
+Parent becomes inferior 1
+Child becomes inferior 2
+Both can be debugged
+```
+- To Show all inferiors currently loaded
+```bash
+(gdb) info inferiors
+  Id   Target Id         Frame
+* 1    process 2489      main ()
+  2    process 2490      child_process ()
+```
+
+- To Swtich to infereior N
+
+```bash
+(gdb) inferior 2
+
+Now GDB switches the context to process #2.
+(gdb) bt
+(gdb) p var
+```
+- To Control the behaviour after an exec() call
+    - new → Treat exec() as a new inferior
+    - same → Replace existing inferior’s program
+```bash
+(gdb) set follow-exec-mode new
+
+```
+- Manually add new inferiors (new debugged processes)
+```bash
+(gdb) add-inferior -exec ./worker
+
+This creates a new inferior that can later be started:
+(gdb) inferior 3
+(gdb) run
+
+
+Or duplicate the current one:
+(gdb) add-inferior -copies 2
+
+Makes 2 copies of the current inferior context.
+```
+- To Delete an inferior:
+```bash
+(gdb) remove-inferior 2
+
+Process is removed from multiprocess list.
+```
+- To Duplicate the current inferior’s state, not the process.
+```bash
+(gdb) clone-inferior
+
+Creates a new inferior with:
+* Same executable
+* Same breakpoints
+* Same arguments
+* Same environment
+Used for multi-run analysis.
+```
+
+- To Print the current inferior ID
+```bash
+(gdb) print $_inferior
+$1 = 2
+```
+### Non-stop mode
+### Thread apply
+### Calling inferior functions
+
+### Dynamic Printf
