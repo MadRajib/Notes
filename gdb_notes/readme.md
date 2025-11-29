@@ -282,6 +282,7 @@ End of assembler dump.
 ```bash
 $ gdb a.out
 
+// ~/.gdbinit
 (gdb) set history save on
 (gdb) set print pretty on
 (gdb) set pagination off
