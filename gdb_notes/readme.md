@@ -548,6 +548,15 @@ Static - use this to identfiy a particular GDB session:
 set prompt <prompt>
 show prompt
 ```
+Dynamic - use Python to generate the prompt
+```bash
+def my_prompt_hook(current_propmt):
+    my_prompt =  <... code ...>
+    return my_prompt
+
+# gdb will call this for every prompt
+gdb.prompt_hook = my_prompt_hook
+```
 
 ### Reverse Debugging
 
