@@ -179,6 +179,80 @@ Num Type           Disp Enb Address    What
 (gdb) disable 4
 ```
 
+Examine memory
+- The syntax for the x command is x/<count><format><size> <address>.
+- *count* → how many units to display
+- *size* → how many bytes per unit
+    - b -> bytes; h -> half-word; w -> word; g -> giant word
+- Format specifiers:
+    - x -> hex; d -> signed dec; u -> unsigned dec; t -> binary
+    - o -> octale; c -> character; f -> float; s -> C-string; i -> machine instr
+```bash
+Bytes in hex:
+(gdb) x/8xb 0x7fffffffe000
+0x7fffffffe000: 0x55 0x48 0x89 0xe5 0x48 0x83 0xec 0x10
+
+Words (4 bytes) in hex:
+(gdb) x/4xw 0x7fffffffe000
+0x7fffffffe000: 0xe5894855 0x10ec8348 0x24448948 0x89480000
+
+Giant words (8 bytes) in hex:
+(gdb) x/2xg 0x7fffffffe000
+0x7fffffffe000: 0x10ec8348e5894855 0x0000000000444889
+
+Signed decimal:
+(gdb) x/4dw 0x7fffffffe000
+0x7fffffffe000: -1770702563 283997384 11223344 55667788
+
+Unsigned decimal:
+(gdb) x/4uw 0x7fffffffe000
+0x7fffffffe000: 2524264733 283997384 11223344 55667788
+
+Binary:
+(gdb) x/4tb 0x7fffffffe000
+0x7fffffffe000: 01010101 01001000 10001001 11100101
+
+Characters:
+(gdb) x/10cb 0x7fffffffe040
+0x7fffffffe040: 'H' 'e' 'l' 'l' 'o' ' ' 'W' 'o' 'r' 'l'
+
+C-string:
+(gdb) x/s 0x7fffffffe040
+0x7fffffffe040: "Hello World"
+
+Assembly instructions:
+(gdb) x/5i $rip
+0x400540: push rbp
+0x400541: mov  rbp, rsp
+0x400544: sub  rsp, 0x10
+0x400548: mov  DWORD PTR [rbp-0x4], edi
+0x40054b: mov  QWORD PTR [rbp-0x10], rsi
+
+Floats:
+(gdb) x/4fw 0x7fffffffe000
+0x7fffffffe000: 3.14 2.71 1.41 0.57
+
+Array dump (symbol name):
+(gdb) x/5dw arr
+0x601040 <arr>: 10 20 30 40 50
+
+Pointer:
+(gdb) x/x $rbp
+0x7fffffffe0a0: 0x7fffffffe0c0
+
+Pointer dereference:
+(gdb) x/x *$rbp
+0x7fffffffe0c0: 0x0000000000000042
+
+Hex dump (64 bytes):
+(gdb) x/64bx 0x7fffffffe000
+0x7fffffffe000: 0x55 0x48 0x89 0xe5 0x48 0x83 0xec 0x10 ...
+
+Word dump (32 words):
+(gdb) x/32wx 0x7fffffffe000
+0x7fffffffe000: 0xe5894855 0x10ec8348 ...
+```
+
 ### Tricks
 
 ```bash
