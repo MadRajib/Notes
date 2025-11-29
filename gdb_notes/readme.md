@@ -228,3 +228,59 @@ id: 123
 name: jon doe
 dob: (0x7ffff7fb02a0) Sun Oct  2 09:30:00 2000
 ```
+- To use Python pretty print
+```bash
+(gdb) shell cat pretty.py 
+```
+```python
+import time
+
+class StudentPrinter(object):
+    "Print a struct student."
+
+    def __init__(self, val):
+        self.val = val
+
+    def to_string(self):
+        print("month = %d" % self.val['dob']['tm_mon'])
+        return ("id: %i name=%s dob=%s"
+                % (self.val['id'], self.val['name'],
+                   time.asctime(
+                       (self.val['dob']['tm_year'] + 1900,
+                        self.val['dob']['tm_mon'],
+                        self.val['dob']['tm_mday'],
+                        self.val['dob']['tm_hour'],
+                        self.val['dob']['tm_min'],
+                        self.val['dob']['tm_sec'],
+                        self.val['dob']['tm_wday'],
+                        self.val['dob']['tm_yday'],
+                        self.val['dob']['tm_isdst']))))
+
+    def display_hint(self):
+        return 'student'
+
+
+import gdb.printing
+# create a pretty printer collection matching 'student' c pattern
+pp = gdb.printing.RegexpCollectionPrettyPrinter('student')
+
+# Adds your actual pretty-printer class to the collection.
+# Arguments (in order):
+#   'student' → Name of the printer (tag)
+#   '^student$' → Regex that matches the type name
+#       ^student$ means: match exactly the type "student" (no extra words).
+#   StudentPrinter → Your Python class that formats the output.
+pp.add_printer('student', '^student$', StudentPrinter)
+
+# Register the pretty-printer for this debugging session so GDB uses it automatically whenever it prints student objects.
+gdb.printing.register_pretty_printer(gdb.current_objfile(), pp)
+```
+- *gdb.printing* provides helper classes for registering and organizing pretty-printers so GDB can display custom C/C++ structures in a human-friendly format.
+
+- using it
+```bash
+(gdb) source pretty.py
+(gdb) print st
+$2 = month = 9
+id: 123 name=0x5555555592a0 "jon doe" dob=Mon Sep  2 09:30:00 2000
+```
