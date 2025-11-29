@@ -147,5 +147,16 @@ hello world
 // get breakpoint locations 
 (gdb) python print(bps[0].location)
 main
-(gdb)
+
+// print varaibles
+(gdb) print a
+$1 = 0
+(gdb) python var_a = gdb.parse_and_eval('a')
+(gdb) python print(var_a)
+0
+// if a is increments, ruing the above print(var_a) will print old value
+```
+- to get python gdb help
+```bash
+(gdb) python help(gdb)
 ```
