@@ -565,6 +565,10 @@ def my_prompt_hook(current_propmt):
 # gdb will call this for every prompt
 gdb.prompt_hook = my_prompt_hook
 ```
+- Advance to line no
+```bash
+(gdb) advance 24
+```
 
 ### Reverse Debugging
 
