@@ -541,7 +541,7 @@ id: 123 name=0x5555555592a0 "jon doe" dob=Mon Sep  2 09:30:00 2000
 #### Custom Prompts
 Default:
 ```bash
-   (gdb)
+(gdb)
 ```
 Static - use this to identfiy a particular GDB session:
 ```bash
@@ -550,9 +550,17 @@ show prompt
 ```
 Dynamic - use Python to generate the prompt
 ```bash
+import gdb
+import time
+
 def my_prompt_hook(current_propmt):
-    my_prompt =  <... code ...>
-    return my_prompt
+    my_prompt = time.strftime("%H:%M:%S")
+
+    try:
+        frame = gdb.selected_frame().name()
+    except gdb.error:
+        frame = "(no frame)"
+    return f "[{now_str}] {frame} > "
 
 # gdb will call this for every prompt
 gdb.prompt_hook = my_prompt_hook
