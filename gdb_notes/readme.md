@@ -617,3 +617,16 @@ type = long [32]
     ```bash
     (gdb) target remote localhost:2000
     ```
+
+### Breakpoints
+
+```bash
+    tbreak          // temporary breakpoint
+    rbreak          // break on regular expression match
+    break foo thread 3 // stop at foo only in thread 3
+    break foo if bar > 10 // stop at foo only if bar > 3
+
+    delete [n]          // delete breakpoint number n
+    delete [n]          // disable breakpoint number n
+    enable [n]          // enable breakpoint number n
+```
