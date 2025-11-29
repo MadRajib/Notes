@@ -252,6 +252,30 @@ Word dump (32 words):
 (gdb) x/32wx 0x7fffffffe000
 0x7fffffffe000: 0xe5894855 0x10ec8348 ...
 ```
+Step through the code at the instruction level
+- There are two commands, nexti and stepi, that work similar to next and step.
+
+See the assembly code my program is running
+```bash
+(gdb) disassemble main
+Dump of assembler code for function main:
+0x80483c0 <main>:       push   %ebp
+0x80483c1 <main+1>:     mov    %esp,%ebp
+0x80483c3 <main+3>:     sub    $0x18,%esp
+0x80483c6 <main+6>:     movl   $0x0,0xfffffffc(%ebp)
+0x80483cd <main+13>:    mov    0xfffffffc(%ebp),%eax
+0x80483d0 <main+16>:    movb   $0x7,(%eax)
+0x80483d3 <main+19>:    xor    %eax,%eax
+0x80483d5 <main+21>:    jmp    0x80483d7 <main+23>
+0x80483d7 <main+23>:    leave  
+0x80483d8 <main+24>:    ret    
+End of assembler dump.
+
+(gdb) set disassembly-flavor intel
+
+(gdb) set disassembly-flavor att
+
+```
 
 ### Tricks
 
