@@ -160,3 +160,32 @@ $1 = 0
 ```bash
 (gdb) python help(gdb)
 ```
+- To print structures
+
+```bash
+(gdb) p st
+$4 = {id = 123, name = 0x5555555592a0 "jon doe", dob = {tm_sec = 0, tm_min = 30, tm_hour = 9, tm_mday = 2, tm_mon = 9, tm_year = 100, tm_wday = 0,
+    tm_yday = 0, tm_isdst = 0, tm_gmtoff = 0, tm_zone = 0x0}}
+
+// set printing structures some what good
+(gdb) set print pretty on
+
+(gdb) p st
+$5 = {
+  id = 123,
+  name = 0x5555555592a0 "jon doe",
+  dob = {
+    tm_sec = 0,
+    tm_min = 30,
+    tm_hour = 9,
+    tm_mday = 2,
+    tm_mon = 9,
+    tm_year = 100,
+    tm_wday = 0,
+    tm_yday = 0,
+    tm_isdst = 0,
+    tm_gmtoff = 0,
+    tm_zone = 0x0
+  }
+}
+```
