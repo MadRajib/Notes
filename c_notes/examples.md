@@ -193,3 +193,98 @@ CTRL_REG.B.COUNT = 15;
 // Modify full register
 CTRL_REG.REG = 0x000000FF;
 ```
+
+### Ring buffer
+
+#### With Locks:
+```c
+
+typedef struct {
+    void **buf;
+    size_t capacity; // number of slots
+    size_t head;     // read index
+    size_t tail;     // write index
+    pthread_mutex_t mtx;
+    pthread_cond_t not_empty;
+    pthread_cond_t not_full;
+} ring_t;
+
+
+void ring_init(size_t capacity) {
+    // intialize buffer
+    r->buf = calloc(capacity, sizeof(void*));
+    if (!r->buf) { free(r); return NULL; }
+
+    r->capacity = capacity;
+    r->head = r->tail = 0;
+
+    pthread_mutex_init(&r->mtx, NULL);
+    pthread_cond_init(&r->not_empty, NULL);
+    pthread_cond_init(&r->not_full, NULL);
+}
+
+bool ring_push(ring_t *r, void *item) {
+    pthread_mutex_lock(&r->mtx);
+
+    while (ring_full(r))
+        pthread_cond_wait(&r->not_full, &r->mtx);
+
+    r->buf[r->tail] = item;
+    r->tail = (r->tail + 1) % r->capacity;
+
+    pthread_cond_signal(&r->not_empty);
+    pthread_mutex_unlock(&r->mtx);
+    return true;
+}
+
+bool ring_pop(ring_t *r, void **out) {
+    pthread_mutex_lock(&r->mtx);
+
+    while (ring_empty(r))
+        pthread_cond_wait(&r->not_empty, &r->mtx);
+
+    *out = r->buf[r->head];
+    r->head = (r->head + 1) % r->capacity;
+
+    pthread_cond_signal(&r->not_full);
+    pthread_mutex_unlock(&r->mtx);
+    return true;
+}
+
+// Producer thread
+void* producer_thread(void *arg) {
+    ring_t *r = arg;
+
+    for (int i = 1; i <= 30; i++) {
+        printf("Producer: pushing %d\n", i);
+        ring_push(r, i);
+        usleep(100 * 1000); // Sleep 100ms
+    }
+
+    return NULL;
+}
+
+// Consumer thread
+void* consumer_thread(void *arg) {
+    ring_t *r = arg;
+
+    for (int i = 0; i < 30; i++) {
+        int val = ring_pop(r);
+        printf("Consumer: popped %d\n", val);
+        usleep(150 * 1000); // Sleep 150ms
+    }
+
+    return NULL;
+}
+
+int main(.....) {
+    ...
+    pthread_t prod, cons;
+
+    pthread_create(&prod, NULL, producer_thread, &r);
+    pthread_create(&cons, NULL, consumer_thread, &r);
+
+    pthread_join(prod, NULL);
+    pthread_join(cons, NULL);
+}
+```
