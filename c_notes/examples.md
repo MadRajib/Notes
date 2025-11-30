@@ -70,3 +70,62 @@ void check_flag() {
     }
 }
 ```
+### Offsetof implementation
+```c
+#define offsetof(type, member) \
+        ((size_t)((char *)&((type *)0)->member - (char *)0))
+```
+- Here we are not dereferencing type rather just finding the address of the member.
+- Usage:
+```c
+struct Point {
+    int x;      // offset 0
+    float y;    // offset 4
+};
+
+int main() {
+    printf("offset of x = %zu\n", offsetof(struct Point, x));
+    printf("offset of y = %zu\n", offsetof(struct Point, y));
+    return 0;
+}
+
+//Output
+offset of x = 0
+offset of y = 4
+```
+
+### Container of implementation
+```c
+#define containerof(ptr, type, member) ({ \
+        const typeof(((type *)0)->member) *__mptr = (ptr); \
+        (type *)((char *)__mptr - offsetof(type, member));})
+```
+- Usage:
+```c
+struct Node {
+    int data;
+};
+
+struct Wrapper {
+    int id;
+    struct Node node;
+    float value;
+};
+
+int main() {
+    struct Wrapper w = { .id = 10, .node = { 99 }, .value = 3.5 };
+
+    // ptr points to the embedded Node
+    struct Node *node_ptr = &w.node;
+
+    // recover the parent (Wrapper) pointer
+    struct Wrapper *wrap_ptr = container_of(node_ptr, struct Wrapper, node);
+
+    printf("Recovered id = %d\n", wrap_ptr->id);      // prints 10
+    printf("Recovered value = %.1f\n", wrap_ptr->value); // prints 3.5
+    return 0;
+}
+// output
+Recovered id = 10
+Recovered value = 3.5
+```
