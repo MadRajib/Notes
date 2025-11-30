@@ -129,3 +129,67 @@ int main() {
 Recovered id = 10
 Recovered value = 3.5
 ```
+### Union Struct trick
+Example 1:
+```c
+    union V32 {
+        struct {
+            I32 x;
+            I32 y;
+        };
+
+        I32 v[2];
+    };
+
+    // Usage
+    union V32 vec;
+
+    // Write using struct fields
+    vec.x = 10;
+    vec.y = 20;
+
+    printf("vec.x = %d\n", vec.x);
+    printf("vec.y = %d\n", vec.y);
+
+    // Access same data using array view
+    printf("vec.v[0] = %d\n", vec.v[0]);
+    printf("vec.v[1] = %d\n", vec.v[1]);
+
+    // Modify using array
+    vec.v[0] = 100;
+    vec.v[1] = 200;
+
+    // Access again via struct
+    printf("vec.x = %d\n", vec.x);
+    printf("vec.y = %d\n", vec.y);
+```
+Example 2:
+```c
+#include <stdint.h>
+
+typedef union {
+    uint32_t REG;   // full 32-bit access
+
+    struct {
+        uint32_t ENABLE : 1;   // bit 0
+        uint32_t MODE   : 1;   // bit 1
+        uint32_t COUNT  : 6;   // bits 2–7
+        uint32_t RESERVED : 24;
+    } B;                       // bitfield view
+
+} CTRL_REG_t;
+
+#define CTRL_REG   (*(volatile CTRL_REG_t*)0x40001000)
+
+// Access the full register
+uint32_t r = CTRL_REG.REG;
+
+// Modify individual bitfields
+// directly writing to hardware reg
+CTRL_REG.B.ENABLE = 1;
+CTRL_REG.B.MODE = 0;
+CTRL_REG.B.COUNT = 15;
+
+// Modify full register
+CTRL_REG.REG = 0x000000FF;
+```
