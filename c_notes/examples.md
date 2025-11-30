@@ -94,7 +94,7 @@ offset of x = 0
 offset of y = 4
 ```
 
-### Container of implementation
+### Containerof implementation
 ```c
 #define containerof(ptr, type, member) ({ \
         const typeof(((type *)0)->member) *__mptr = (ptr); \
