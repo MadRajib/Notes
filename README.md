@@ -1,3 +1,3 @@
 ## Study Plan
 
-(Plans Wiki)[https://github.com/MadRajib/Notes/wiki]
+[Plans Wiki](https://github.com/MadRajib/Notes/wiki)
