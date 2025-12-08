@@ -1,6 +1,9 @@
 ### Volatile
+The $\mathbf{volatile}$ Keyword: to tell the compiler that a variable's value can be changed by external factors (like an Interrupt Service Routine (ISR) or a memory-mapped hardware register) and prevent aggressive compiler optimizations (e.g., caching the value in a register)
+- Example Question: "When must you use $\text{volatile}$?"
+- (Answer: For shared variables between an ISR and main code, and for memory-mapped I/O registers).
 
-- Memory Mapped Example
+Memory Mapped Example
 ```c
 #define UART_STATUS_REG  (*(volatile uint32_t*)0x40001000)
 
@@ -287,4 +290,5 @@ int main(.....) {
     pthread_join(prod, NULL);
     pthread_join(cons, NULL);
 }
+
 ```
