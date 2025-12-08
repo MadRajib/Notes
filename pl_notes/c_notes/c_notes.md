@@ -206,6 +206,32 @@ if (pi == pv) { // ✅ Valid: Any pointer can be compared to 'void*'
 
 ## const
 The $\mathbf{const}$ Keyword: Its use for defining read-only data, preventing accidental modification, and placing data in ROM/Flash (read-only memory).
+```c
+int var;
+int *const c_ptr = &var // a const pointer to int
+*c_ptr = 123;           // ok
+++c_ptr;                // Error
+
+const int c_var = 100, *ptr_to_const;
+ptr_to_const = &c_var; // OK
+var = 2 * *ptr_to_const; // OK
+ptr_to_const = &var;     // OK
+
+if (c_var < *ptr_to_const)   // OK
+ *ptr_to_const =  77;        // ERROR even tho var is non constant
+```
+- Compiler implicity convers a pointer to a given type T into a more qualified version of the type T.
+- If we want to conver a pointer into a pointer to a less-qualified type, we must use an explicit type conversion.
+```c
+int *ptr = &var;
+*ptr = 77;
+ptr_to_const = ptr;
+*ptr_to_const = 77;     // error
+ptr = &c_var ;          // Error can't implicity convert
+ptr = (int *) &c_var;   // ok
+*ptr =  200;            // posibly runtime errror if compiler has place in read-only section
+```
+
 ### How the C Compiler Makes a Variable `const`
 
 ---
