@@ -203,3 +203,90 @@ if (pi == pv) { // ✅ Valid: Any pointer can be compared to 'void*'
 }
 ```
 * The Limitation: You cannot perform pointer arithmetic (like pv + 1 or pv - pv) on a void*. The compiler doesn't know the target type's size, so it has no sizeof(...) to use.
+
+## const
+The $\mathbf{const}$ Keyword: Its use for defining read-only data, preventing accidental modification, and placing data in ROM/Flash (read-only memory).
+### How the C Compiler Makes a Variable `const`
+
+---
+
+### 1. Const Is Mainly Enforced at Compile-Time
+- Compiler marks the variable as **read-only** in its symbol table.
+- Attempts to modify it produce a **compile-time error**.
+- No special CPU instructions are generated for `const`.
+
+---
+
+### 2. Memory Placement Depends on Declaration Type
+
+#### Global or Static `const`
+```c
+const int x = 10;
+```
+- Usually placed in the **`.rodata`** (read-only data) section.
+- Runtime writes may cause segmentation fault or undefined behavior.
+
+#### Local `const` Variable
+```c
+void f() {
+    const int a = 10;
+}
+```
+- Stored on the **stack** (always writable).
+- Only compile-time protection; no hardware-level guarantee.
+
+---
+
+### 3. `const` Does Not Generate Special Instructions
+- No “const opcode”.
+- Compiler only enforces rules at compile-time.
+
+---
+
+### 4. `const` Can Be Bypassed (Undefined Behavior)
+```c
+const int x = 10;
+int *p = (int*)&x;
+*p = 20;   // undefined behavior
+```
+
+---
+
+### 5. Example: Global `const` in Assembly
+```asm
+.rodata
+x:
+    .long 10
+
+.text
+fun:
+    mov eax, DWORD PTR x
+    add eax, 1
+    ret
+```
+
+---
+
+### 6. Local `const` May Be Optimized Away
+```c
+void f() {
+    const int a = 10;
+    int y = a + 5;
+}
+```
+
+Possible optimized assembly:
+```asm
+mov y, 15
+```
+
+---
+
+### Summary Table
+
+| Declaration Type        | Behavior                             | Memory Protected? |
+|-------------------------|----------------------------------------|--------------------|
+| Local const             | Compile-time rule only                | ❌ No (stack RW)   |
+| Global/static const     | Stored in `.rodata`                   | ✔ Yes (if MMU)    |
+| Pointer-to-const        | Prevents modification via pointer     | ❌ Can be bypassed |
+| Extern const            | Same as global const                  | ✔ If in `.rodata` |
