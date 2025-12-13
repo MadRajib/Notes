@@ -330,6 +330,132 @@ void* consumer(void* arg) {
 }
 ```
 
+### SPSC using lock free ring buffer
+- Only one thread writes tail
+- Only one thread writes head
+- Both threads may read the other index
+- No mutex, no condition variable
+- Correctness relies on atomic operations + memory ordering
+- Core Idea:
+    - Producer owns tails
+    - Consumer owns head
+    - Each side only reads other index.
+
+```c
+#include <stdatomic.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef struct {
+    size_t capacity;
+    void **buffer;
+
+    atomic_size_t head;  // consumer-owned
+    atomic_size_t tail;  // producer-owned
+} spsc_ring_t;
+
+// Intialisation
+bool spsc_init(spsc_ring_t *r, size_t capacity) {
+    r->buffer = calloc(capacity, sizeof(void *));
+    if (!r->buffer)
+        return false;
+
+    r->capacity = capacity;
+    atomic_init(&r->head, 0);
+    atomic_init(&r->tail, 0);
+    return true;
+}
+
+// Producer
+bool spsc_push(spsc_ring_t *r, void *item) {
+    // Only gurantees atomic no ordering or synchronisation
+    // CPU and compiler are free to reorder surrounging instructions
+    size_t tail = atomic_load_explicit(&r->tail, memory_order_relaxed);
+    size_t next = (tail + 1) % r->capacity;
+    // all the mem operations performed after the atomic load will occur
+    // after the data with atomic variable has be loaded.
+    // this guranteees that all the changes made by predceding release operations
+    // are visbible
+    size_t head = atomic_load_explicit(&r->head, memory_order_acquire);
+
+    if (next == head) {
+        // buffer full
+        return false;
+    }
+
+    r->buffer[tail] = item;
+    // ensures that all the data read/write performed before realse
+    // become visible before the atomic operation itself
+    atomic_store_explicit(&r->tail, next, memory_order_release);
+    return true;
+}
+
+// Consumer
+bool spsc_pop(spsc_ring_t *r, void **out) {
+    size_t head = atomic_load_explicit(&r->head, memory_order_relaxed);
+
+    size_t tail = atomic_load_explicit(&r->tail, memory_order_acquire);
+
+    if (head == tail) {
+        // buffer empty
+        return false;
+    }
+
+    *out = r->buffer[head];
+
+    size_t next = (head + 1) % r->capacity;
+    atomic_store_explicit(&r->head, next, memory_order_release);
+    return true;
+}
+
+```
+- Why memory ordering is required here ?
+    - To ensure: Data must be visible before tail is visible.
+    - atomic_store_explicit(&tail, next, memory_order_release);
+        - All writes before this store
+        - Are visible to any thread that does an acquire load of tail
+    - atomic_load_explicit(&tail, memory_order_acquire);
+        - All writes before the release store
+        - Are visible after this load
+
+cpp varient
+```cpp
+void enqueue(const Item& item) {
+    size_t current_head = head.load(std::memory_order_relaxed);
+    size_t next_head = (current_head + 1) & (N - 1);
+
+    // 1. Check for fullness
+    while (next_head == tail.load(std::memory_order_acquire)) {
+        // Queue is full, spin-wait or yield
+    }
+
+    // 2. Write the data
+    buffer[current_head] = item;
+    
+    // 3. Update the head (Release semantics guarantees the write to 'buffer' is visible)
+    head.store(next_head, std::memory_order_release);
+}
+
+bool dequeue(Item& item) {
+    size_t current_head = head.load(std::memory_order_acquire);
+    size_t current_tail = tail.load(std::memory_order_relaxed);
+    
+    // 1. Check for emptiness
+    if (current_tail == current_head) {
+        return false; // Queue is empty
+    }
+
+    // 2. Read the data (Acquire semantics guarantees the read is ordered after 'head' load)
+    item = buffer[current_tail];
+    
+    // 3. Update the tail
+    size_t next_tail = (current_tail + 1) & (N - 1);
+    tail.store(next_tail, std::memory_order_release);
+
+    return true;
+}
+```
+
 ### Print memory layout of a process
 ```c
 /* This file is part of the sample code and exercises

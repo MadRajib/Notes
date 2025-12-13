@@ -252,3 +252,59 @@ Ans:
 
     Yes, but only for SPSC. For MPSC/MPMC it failes because of data race conditons.
  
+1. why memory ordering exists at all ?
+    - Modern systems have three independent reordering layers:
+        - Compiler (reorders instructions)
+        - CPU (out-of-order execution)
+        - Caches (visibility delays across cores)
+1. Atomic operations vs memory ordering 
+    - Atomic = no torn reads/writes
+    - Memory ordering = visibility & order across threads
+    - Atomics without ordering are often not enough.
+
+    - **memory_order_relaxed (the weakest)**
+        - Atomicity
+        - No Ordering
+        - No Visibility timing
+        - “This operation is atomic, but I don’t care when other threads see it.”
+        ```c
+        atomic_int counter;
+
+        atomic_fetch_add_explicit(&counter, 1, memory_order_relaxed);
+        ```
+        - Correct Beacuse:
+            - No dependency on when other threads see it
+            - Only final value matters
+        - When to use:
+            - Statistics
+            - reference counters
+            - thread-local ownership variable
+            - SPSC owned indices
+        - When not to use:
+            - Publishing data
+            - signaling availability
+            - synchronizing threads
+
+    - **memory_order_release (publisher side)**
+        - All memory writes BEFORE the release store become visible BEFORE the atomic value is visible.
+        - “I am DONE writing shared data. Now I publish it.”
+        ```c
+        data = 42;
+        atomic_store_explicit(&ready, 1, memory_order_release);
+        ```
+        - Any thread that sees ready == 1 (via acquire) will also see data == 42
+        - What release prevents
+            - Earlier writes moving AFTER the store
+    
+    - **memory_order_acquire (consumer side)**
+        - All memory reads AFTER the acquire load see data written BEFORE the matching release store.
+        - “If I see the flag, I must see the data.”
+        ```c
+        while (!atomic_load_explicit(&ready, memory_order_acquire));
+
+        printf("%d\n", data); // guaranteed correct
+
+        ```
+        - What acquire prevents
+            - Later reads moving BEFORE the load
+    
