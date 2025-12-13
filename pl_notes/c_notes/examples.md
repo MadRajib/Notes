@@ -293,6 +293,43 @@ int main(.....) {
 
 ```
 
+### Producer Comsumer uisng semaphores
+```c
+
+#define N 8
+int buffer[N];
+int head = 0;
+int tail = 0;
+
+sem_t empty;  // available slots
+sem_t full;   // available items
+
+
+void* producer(void* arg) {
+    for (int i = 0; i < 30; i++) {
+        sem_wait(&empty);              // wait for space
+
+        buffer[tail] = i;
+        tail = (tail + 1) % N;
+
+        sem_post(&full);               // item available
+    }
+    return NULL;
+}
+
+void* consumer(void* arg) {
+    for (int i = 0; i < 30; i++) {
+        sem_wait(&full);               // wait for item
+
+        int val = buffer[head];
+        head = (head + 1) % N;
+
+        sem_post(&empty);              // slot freed
+    }
+    return NULL;
+}
+```
+
 ### Print memory layout of a process
 ```c
 /* This file is part of the sample code and exercises
