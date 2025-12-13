@@ -245,3 +245,10 @@ Ans:
 
     This might cause deadlock eg. producer unlocks, consumer gets the lock and before sleeping after the conditon
     producer signals, which is lows, consumer sleep inside cond_wait: deadlock.
+
+1. Can we use semaphores instead of Mutex ?
+
+    Ans:
+
+    Yes, but only for SPSC. For MPSC/MPMC it failes because of data race conditons.
+ 
