@@ -234,3 +234,14 @@ Ans:
 
     Lock-free code is harder to reason about, debug, and maintain.
     I default to simple, correct code and only move to lock-free after profiling proves the need.
+
+1. What happens if we unlock the mutex first and then signal the other thread?
+    ```c
+    pthread_mutex_unlock(&r->mtx);
+    pthread_cond_signal(&r->not_empty);
+    ```
+
+    Lead-level answer:
+
+    This might cause deadlock eg. producer unlocks, consumer gets the lock and before sleeping after the conditon
+    producer signals, which is lows, consumer sleep inside cond_wait: deadlock.
