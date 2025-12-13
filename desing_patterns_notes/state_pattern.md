@@ -4,6 +4,8 @@ The State Pattern allows an object to alter its behavior
 when its internal state changes. The object will appear to
 change its class.
 
+![alt text](./state_pattern_struct.png)
+
 When to use the State Pattern (simple rule)
 👉 Use the State Pattern when:
 * Your object’s behavior is controlled by a state variable
@@ -261,6 +263,194 @@ int main() {
 
     machine.insertQuarter();
     machine.turnCrank();
+
+    return 0;
+}
+
+```
+
+C version
+```c
+// state.h
+#ifndef STATE_H
+#define STATE_H
+
+struct GumballMachine;
+
+/* State "interface" */
+typedef struct State {
+    void (*insertQuarter)(struct GumballMachine*);
+    void (*ejectQuarter)(struct GumballMachine*);
+    void (*turnCrank)(struct GumballMachine*);
+    void (*dispense)(struct GumballMachine*);
+} State;
+
+#endif
+
+// gumball_machine.h
+#ifndef GUMBALL_MACHINE_H
+#define GUMBALL_MACHINE_H
+
+#include "state.h"
+
+typedef struct GumballMachine {
+    State* soldOutState;
+    State* noQuarterState;
+    State* hasQuarterState;
+    State* soldState;
+
+    State* state;
+    int count;
+} GumballMachine;
+
+/* API */
+GumballMachine* gumball_machine_create(int count);
+
+void insertQuarter(GumballMachine* gm);
+void ejectQuarter(GumballMachine* gm);
+void turnCrank(GumballMachine* gm);
+
+/* helpers */
+void setState(GumballMachine* gm, State* state);
+void releaseBall(GumballMachine* gm);
+
+#endif
+
+// sold_out_state.c
+#include <stdio.h>
+#include "state.h"
+#include "gumball_machine.h"
+
+/* function declarations */
+static void insertQuarter_impl(GumballMachine* gm);
+static void ejectQuarter_impl(GumballMachine* gm);
+static void turnCrank_impl(GumballMachine* gm);
+static void dispense_impl(GumballMachine* gm);
+
+/* single instance */
+State SoldOutState = {
+    insertQuarter_impl,
+    ejectQuarter_impl,
+    turnCrank_impl,
+    dispense_impl
+};
+
+static void insertQuarter_impl(GumballMachine* gm) {
+    printf("Machine is sold out.\n");
+}
+
+static void ejectQuarter_impl(GumballMachine* gm) {
+    printf("No quarter to eject.\n");
+}
+
+static void turnCrank_impl(GumballMachine* gm) {
+    printf("You turned, but there are no gumballs.\n");
+}
+
+static void dispense_impl(GumballMachine* gm) {
+    printf("No gumball dispensed.\n");
+}
+
+// no_quarter_state.c
+#include <stdio.h>
+#include "state.h"
+#include "gumball_machine.h"
+
+extern State HasQuarterState;
+
+static void insertQuarter_impl(GumballMachine* gm);
+static void ejectQuarter_impl(GumballMachine* gm);
+static void turnCrank_impl(GumballMachine* gm);
+static void dispense_impl(GumballMachine* gm);
+
+State NoQuarterState = {
+    insertQuarter_impl,
+    ejectQuarter_impl,
+    turnCrank_impl,
+    dispense_impl
+};
+
+static void insertQuarter_impl(GumballMachine* gm) {
+    printf("You inserted a quarter.\n");
+    setState(gm, &HasQuarterState);
+}
+
+static void ejectQuarter_impl(GumballMachine* gm) {
+    printf("You haven't inserted a quarter.\n");
+}
+
+static void turnCrank_impl(GumballMachine* gm) {
+    printf("You turned, but there's no quarter.\n");
+}
+
+static void dispense_impl(GumballMachine* gm) {
+    printf("You need to pay first.\n");
+}
+
+// gumball_machine.c
+#include <stdlib.h>
+#include "gumball_machine.h"
+
+/* external states */
+extern State SoldOutState;
+extern State NoQuarterState;
+extern State HasQuarterState;
+extern State SoldState;
+
+GumballMachine* gumball_machine_create(int count) {
+    GumballMachine* gm = malloc(sizeof(GumballMachine));
+
+    gm->soldOutState    = &SoldOutState;
+    gm->noQuarterState  = &NoQuarterState;
+    gm->hasQuarterState = &HasQuarterState;
+    gm->soldState       = &SoldState;
+
+    gm->count = count;
+    gm->state = (count > 0) ? gm->noQuarterState : gm->soldOutState;
+
+    return gm;
+}
+
+void insertQuarter(GumballMachine* gm) {
+    gm->state->insertQuarter(gm);
+}
+
+void ejectQuarter(GumballMachine* gm) {
+    gm->state->ejectQuarter(gm);
+}
+
+void turnCrank(GumballMachine* gm) {
+    gm->state->turnCrank(gm);
+    gm->state->dispense(gm);
+}
+
+void setState(GumballMachine* gm, State* state) {
+    gm->state = state;
+}
+
+void releaseBall(GumballMachine* gm) {
+    if (gm->count > 0) {
+        printf("A gumball comes rolling out the slot...\n");
+        gm->count--;
+    }
+}
+
+
+// main.c
+#include "gumball_machine.h"
+
+int main() {
+    GumballMachine* machine = gumball_machine_create(2);
+
+    insertQuarter(machine);
+    turnCrank(machine);
+
+    insertQuarter(machine);
+    ejectQuarter(machine);
+    turnCrank(machine);
+
+    insertQuarter(machine);
+    turnCrank(machine);
 
     return 0;
 }
