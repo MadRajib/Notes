@@ -250,8 +250,12 @@ Ans:
 
     Ans:
 
-    Yes, but only for SPSC. For MPSC/MPMC it failes because of data race conditons.
- 
+    Yes, but only for SPSC. For MPSC/MPMC it failes because of data race conditons.[example](../pl_notes/c_notes/examples.md#producer-comsumer-uisng-semaphores)
+
+### producer consumer problem using atomics
+
+[example](../pl_notes/c_notes/examples.md#spsc-using-lock-free-ring-buffer)
+
 1. why memory ordering exists at all ?
     - Modern systems have three independent reordering layers:
         - Compiler (reorders instructions)

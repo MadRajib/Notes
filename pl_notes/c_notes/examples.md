@@ -1,3 +1,15 @@
+# Examples
+
+1. [Volatile](#volatile)
+1. [Offsetof implementation](#offsetof-implementation)
+1. [Containerof implementation](#containerof-implementation)
+1. [Union Struct trick](#union-struct-trick)
+1. [Producer Consumer with Locks](#producer-consumer-with-locks)
+1. [Producer Comsumer uisng semaphores](#producer-comsumer-uisng-semaphores)
+1. [SPSC using lock free ring buffer](#spsc-using-lock-free-ring-buffer)
+1. [Print memory layout of a process](#print-memory-layout-of-a-process)
+
+
 ### Volatile
 The $\mathbf{volatile}$ Keyword: to tell the compiler that a variable's value can be changed by external factors (like an Interrupt Service Routine (ISR) or a memory-mapped hardware register) and prevent aggressive compiler optimizations (e.g., caching the value in a register)
 - Example Question: "When must you use $\text{volatile}$?"
@@ -197,9 +209,8 @@ CTRL_REG.B.COUNT = 15;
 CTRL_REG.REG = 0x000000FF;
 ```
 
-### Ring buffer
+### Producer Consumer with Locks
 
-#### With Locks:
 ```c
 
 typedef struct {
