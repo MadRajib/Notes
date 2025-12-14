@@ -7,6 +7,8 @@
 1. [Producer Consumer with Locks](#producer-consumer-with-locks)
 1. [Producer Comsumer uisng semaphores](#producer-comsumer-uisng-semaphores)
 1. [SPSC using lock free ring buffer](#spsc-using-lock-free-ring-buffer)
+1. [SPSC shared memory synchronisation](#spsc-shared-memory-synchronisation)
+1. [SPSC shared memory synchronisation (named sems)](#spsc-shared-memory-synchronisation-named-sems)
 1. [Print memory layout of a process](#print-memory-layout-of-a-process)
 
 
@@ -465,6 +467,134 @@ bool dequeue(Item& item) {
 
     return true;
 }
+```
+### SPSC shared memory synchronisation
+```c
+// Shared memory layout
+#define CAPACITY 1024
+
+struct shm_spsc {
+    sem_t empty;     // slots available
+    sem_t full;      // items available
+    sem_t mutex;     // protects buffer
+    int   buffer[CAPACITY];
+    int   head;
+    int   tail;
+};
+
+// Initialization (once — producer side)
+sem_init(&shm->empty, 1, CAPACITY); // pshared = 1
+sem_init(&shm->full,  1, 0);
+sem_init(&shm->mutex, 1, 1);
+
+shm->head = shm->tail = 0;
+
+// Producer (Process A)
+void produce(struct shm_spsc *s, int item)
+{
+    sem_wait(&s->empty);
+    sem_wait(&s->mutex);
+
+    s->buffer[s->head] = item;
+    s->head = (s->head + 1) % CAPACITY;
+
+    sem_post(&s->mutex);
+    sem_post(&s->full);
+}
+
+// Consumer (Process B)
+int consume(struct shm_spsc *s)
+{
+    int item;
+
+    sem_wait(&s->full);
+    sem_wait(&s->mutex);
+
+    item = s->buffer[s->tail];
+    s->tail = (s->tail + 1) % CAPACITY;
+
+    sem_post(&s->mutex);
+    sem_post(&s->empty);
+
+    return item;
+}
+
+// Cleanup
+sem_destroy(&shm->empty);
+sem_destroy(&shm->full);
+sem_destroy(&shm->mutex);
+```
+
+### SPSC shared memory synchronisation (named sems)
+```c
+// Shared Memory Layout
+#define CAPACITY 8
+
+struct shm_ring {
+    int buffer[CAPACITY];
+    int head;
+    int tail;
+};
+
+// Shared Memory Setup (Both Processes)
+int fd = shm_open("/pc_shm", O_CREAT | O_RDWR, 0666);
+ftruncate(fd, sizeof(struct shm_ring));
+
+struct shm_ring *ring = mmap(NULL,
+    sizeof(struct shm_ring),
+    PROT_READ | PROT_WRITE,
+    MAP_SHARED,
+    fd, 0);
+
+// Initialize once (producer side):
+ring->head = 0;
+ring->tail = 0;
+
+// Semaphore Setup (Named Semaphores)
+sem_t *empty = sem_open("/sem_empty", O_CREAT, 0666, CAPACITY);
+sem_t *full  = sem_open("/sem_full",  O_CREAT, 0666, 0);
+sem_t *mutex = sem_open("/sem_mutex", O_CREAT, 0666, 1);
+
+// Producer (Process A)
+void produce(struct shm_ring *r,
+             sem_t *empty,
+             sem_t *full,
+             sem_t *mutex,
+             int item)
+{
+    sem_wait(empty);     // wait for free slot
+    sem_wait(mutex);     // lock buffer
+
+    r->buffer[r->head] = item;
+    r->head = (r->head + 1) % CAPACITY;
+
+    sem_post(mutex);     // unlock
+    sem_post(full);      // signal item available
+}
+
+// Consumer (Process B)
+void consume(struct shm_ring *r,
+             sem_t *empty,
+             sem_t *full,
+             sem_t *mutex,
+             int *item)
+{
+    sem_wait(full);      // wait for item
+    sem_wait(mutex);     // lock buffer
+
+    *item = r->buffer[r->tail];
+    r->tail = (r->tail + 1) % CAPACITY;
+
+    sem_post(mutex);     // unlock
+    sem_post(empty);    // signal space available
+}
+
+// Cleanup
+sem_unlink("/sem_empty");
+sem_unlink("/sem_full");
+sem_unlink("/sem_mutex");
+shm_unlink("/pc_shm");
+
 ```
 
 ### Print memory layout of a process
