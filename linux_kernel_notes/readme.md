@@ -50,7 +50,7 @@ is mandatory for all kernel modules
 - and init.h is needed for the __init and __exit macros.
 
 
-Module entry and exit points
+**Module entry and exit points**
 
 - The minimal requirement of a kernel module is an initialization method. This is must.
 -  If the module can be built as a
@@ -79,4 +79,8 @@ identify them as the corresponding initialization and exit functions, passing th
 - There is no need to keep references on this initialization function anymore.
 - It is the same for the **__exit** keyword and the exit method, whose corresponding code is omitted when the module is compiled statically into the kernel or when module unloading support is not enabled because, in both cases, the exit function is never called. 
 - **__exit** has no effect on loadable modules.
-- these macros directs compiler to put the code in **.init.text** and **.exit.text** sections, respectively,
+- these macros directs compiler to put the code in **.init.text** and **.exit.text** sections, respectively.
+
+
+**Module information and metadata**
+
