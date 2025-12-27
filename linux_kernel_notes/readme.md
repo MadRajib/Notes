@@ -301,3 +301,104 @@ CONFIG_PACKT_MYCDEV=y
 - Once configured, you can build the kernel with **make**, and build modules with **make modules**.
 - Modules included in the kernel source tree are installed in **/lib/modules/$(uname -r)/kernel/**
 
+
+### Handling module parameters
+
+- Similar to a user program, a kernel module can accept arguments from the command line.
+- For this first we need to declare the variables that will hold the values of cmd-line arguments and use the **module_param()** macro on each of these.
+- The macro is defined in **include/linux/moduleparam.h**
+
+```c
+module_param(name, type, perm);
+
+# name: The name of the variable used as the parameter.
+# type: The parameter's type (bool, charp, byte, short, ushort, int, uint, long, and ulong), where charp stands for character pointer.
+# perm: This represents the /sys/module/<module>/parameters/<param> file permissions. Some of them are S_IWUSR, S_IRUSR, S_IXUSR, S_IRGRP, S_WGRP, and S_IRUGO, where the following applies:
+#    - S_I is just a prefix.
+#    - R = read, W = write, and X = execute.
+#    - USR = user, GRP = group, and UGO = user, group, and others.
+```
+
+- **MODULE_PARM_DESC** can be used on a per-parameter basis to describe the module parameters.
+```c
+#include <linux/moduleparam.h>
+[...]
+static char *mystr = "hello";
+static int myint = 1;
+static int myarr[3] = {0, 1, 2};
+
+module_param(myint, int, S_IRUGO);
+module_param(mystr, charp, S_IRUGO);
+module_param_array(myarr, int,NULL, S_IWUSR|S_IRUSR);
+
+MODULE_PARM_DESC(myint,"this is my int variable");
+MODULE_PARM_DESC(mystr,"this is my char pointer variable");
+MODULE_PARM_DESC(myarr,"this is my array of int");
+
+static int foo()
+{
+    pr_info("mystring is a string: %s\n",
+             mystr);
+    pr_info("Array elements: %d\t%d\t%d",
+             myarr[0], myarr[1], myarr[2]);
+    return myint;
+}
+```
+
+- we could have used modinfo prior to loading the module in order to display a description of parameters supported by the module:
+```bash
+$ modinfo ./helloworld-params.ko
+filename:       /home/jma/work/tutos/sources/helloworld/./helloworld-params.ko
+license:      GPL
+author:       John Madieu <john.madieu@gmail.com>
+srcversion:   BBF43E098EAB5D2E2DD78C0
+depends:        
+vermagic:     4.4.0-93-generic SMP mod_unload modversions
+parm:         myint:this is my int variable (int)
+parm:         mystr:this is my char pointer variable (charp)
+parm:         myarr:this is my array of int (array of int)
+```
+
+- To load the module and feed our parameter
+```bash
+# insmod hellomodule-params.ko mystring="packtpub" myint=15 myArray=1,2,3
+```
+- It is also possible to find and edit the current values for the parameters of a loaded module from **Sysfs** in **/sys/module/<name>/parameters**.
+    - In that directory, there is one file per parameter, containing the parameter value.
+    - These parameter values can be changed if the associated files have write permissions (which depends on the module code).
+    
+    ```bash
+    echo 0 > /sys/module/usbcore/parameters/authorized_default
+    ```
+- Static kernel modules can also read parameters using **CONFIG_CMDLINE**
+```bash
+[initial command line ...] my_module.param=value
+```
+
+- To trigger a function when parameter value is changed:
+```c
+static int enable_feature;
+
+static int param_set_enable(const char *val, const struct kernel_param *kp)
+{
+    int ret = param_set_int(val, kp);
+    if (ret)
+        return ret;
+
+    if (enable_feature)
+        setup_feature();
+    else
+        teardown_feature();
+
+    return 0;
+}
+
+static const struct kernel_param_ops param_ops_enable = {
+    .set = param_set_enable,
+    .get = param_get_int,
+};
+
+module_param_cb(enable_feature, &param_ops_enable, &enable_feature, 0644);
+
+// echo 0 > /sys/module/my_module/parameters/enable_feature
+``` 
