@@ -83,4 +83,42 @@ identify them as the corresponding initialization and exit functions, passing th
 
 
 **Module information and metadata**
-
+- A kernel module uses its **.modinfo** section to store information
+about the module.
+- Any **MODULE_** macro will update the content of this section.
+- The real underlying macro provided by the kernel to add an entry to the module info section is **MODULE_INFO(tag, info)**.
+    - THis adds generic info of the tag = "info" form. eg
+    ```c
+    MODULE_INFO(my_field_name, "What easy value");
+    ```
+- **MODULE_LICENSE()**
+    - Defines how the module’s source code is licensed
+    - Informs the kernel about the license type of the module
+    - Affects module behavior and symbol access
+    - Non-GPL compatible license:
+        - Cannot access symbols exported using **EXPORT_SYMBOL_GPL()**
+        - Can only access symbols exported with **EXPORT_SYMBOL()**
+    - Loading a non-GPL module:
+        - Taints the kernel
+        - Indicates closed-source or untrusted code
+        - Community support may be unavailable
+    - A module without **MODULE_LICENSE()**:
+        - Treated as non-open-source
+        - Also taints the kernel
+    - Supported licenses are listed in:
+        - include/linux/module.h
+- **MODULE_AUTHOR()**
+    - declares the module's author(s)
+    - can have more than one name
+    ```c
+    MODULE_AUTHOR("John Madieu <john.madieu@foobar.com>");
+    MODULE_AUTHOR("Lorem Ipsum <l.ipsum@foobar.com>");
+    ```
+- **MODULE_DESCRIPTION()**
+    - briefly describes what the module does:
+    ```c
+    MODULE_DESCRIPTION("Hello, world! Module").
+    ```
+- You can dump the content of the **.modeinfo** section of a kernel module using the **objdump -d -j .modinfo** command on
+the given module.
+- For a cross-compiled module, you should use **$(CORSS_COMPILE)objdump** instead.
