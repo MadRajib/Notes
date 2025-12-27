@@ -122,3 +122,14 @@ about the module.
 - You can dump the content of the **.modeinfo** section of a kernel module using the **objdump -d -j .modinfo** command on
 the given module.
 - For a cross-compiled module, you should use **$(CORSS_COMPILE)objdump** instead.
+
+**Building a Linux kernel module**
+
+Two Solution exits:
+1.  Out-of-tree building: when the code is outside the kernel src tree.
+    - Building a module this way does not allow integration into the kernel configuration/compilation process, and the module needs to be built separately.
+    -  It must be noted that with this solution, the module cannot be statically linked in the final kernel image – that is, it cannot be built in.
+    - Out-of-tree compilation only allows loadable kernel modules to be produced.
+1. Inside kernel Tree:
+    - Allows to upstream your code.
+    - Allows tatically linked and loadable kernel module.
