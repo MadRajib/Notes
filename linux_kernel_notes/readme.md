@@ -402,3 +402,13 @@ module_param_cb(enable_feature, &param_ops_enable, &enable_feature, 0644);
 
 // echo 0 > /sys/module/my_module/parameters/enable_feature
 ``` 
+
+### Dealing with symbol exports and module dependencies
+
+- The Linux kernel exposes two macros that can be used to export functions and variables. These are the following:
+    - **EXPORT_SYMBOL(symbolname)**: This macro exports a function or variable to all modules.
+    - **EXPORT_SYMBOL_GPL(symbolname)**: This macro exports a function or variable only to GPL modules.
+
+- **EXPORT_SYMBOL()** instructs the Kbuild mechanism
+to include the symbol passed as an argument in the global list of kernel symbols.
+
