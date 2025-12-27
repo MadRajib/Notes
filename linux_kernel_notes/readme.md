@@ -123,7 +123,7 @@ about the module.
 the given module.
 - For a cross-compiled module, you should use **$(CORSS_COMPILE)objdump** instead.
 
-**Building a Linux kernel module**
+### Building a Linux kernel module
 
 Two Solution exits:
 1.  Out-of-tree building: when the code is outside the kernel src tree.
@@ -133,3 +133,81 @@ Two Solution exits:
 1. Inside kernel Tree:
     - Allows to upstream your code.
     - Allows tatically linked and loadable kernel module.
+
+### Linux kernel build system
+
+- LK has its own build system **kbuild**.
+- Allows to configure the LK and compile it based on the config that has been done.
+- Relies mainly on 3 files:
+    1. Kconfig    // feature selection
+    1. Kbuild or  // compilation rules
+    1. Makefile
+
+**The Kbuild or Makefile files**
+
+- If both files exist, only Kbuild will be
+used.
+- eg: using a make file to build a module
+    ```bash
+    make -C $KERNEL_SRC M=$(shell pwd) [target]
+    ```
+    - **$KERNEL_SRC** refers to the path of the prebuilt kernel directory
+    - **-C $KERNEL_SRC** instructs make to change into the specified directory when executing and change back when finished.
+    - **M=$(shell pwd)** in-structs the kernel build system to move back into this directory to find the module that is being built.
+        - The value given to **M** is the absolute path of the directory where the module sources (or the associated Kbuild file) are located.
+    - **[target]** corresponds to the subset of the make targets available when building an external module.
+        - **modules**: This is the default target for external modules. It has the same functionality as if no target was specified.
+        - **modules_install**: This installs the external module(s). The default location is **/lib/modules/<kernel_release>/extra/**. This path can be overridden.
+        - **clean**: This removes all generated files (in the module directory only).
+- To tell the build system what obj files to build or link together:
+```bash
+obj-<X> := <module_name>.o
+```
+    - the kernel build system will build **<module_name>.o** from **<module_name>.c** or **<module_name>.S**
+    - and after linking, it will result in the **<module_name>.ko** kernel loadable module or will be part of the single-file kernel image.
+    - **<X>** can be either **y**, **m**, or left blank(wont be built).
+- However, the **obj-$(CONFIG_XXX)** pattern is often used, where **CONFIG_XXX** is a kernel configuration option, set or not,
+during the kernel configuration process.
+
+```bash
+obj-$(CONFIG_MYMODULE) += mymodule.o
+
+# $(CONFIG_MYMODULE) evaluates to either y, m, or nothing (blank), according to its value during the kernel configuration
+```
+- For multiple src file
+```bash
+<module_name>-y := <file1>.o <file2>.o
+
+# eg.
+obj-m := foo.o bar.o
+```
+- If foo.o and bar.o are made of source files other than foo.c and bar.c
+```bash
+obj-m := foo.o bar.o
+foo-y := foo1.o foo2.o . . .
+bar-y := bar1.o bar2.o bar3.o . . .
+```
+- Other flags
+```bash
+ccflags-y := -I$(src)/include
+ccflags-y += -I$(src)/src/hal/include
+ldflags-y := -T$(src)foo_sections.lds
+
+obj-<X> += somedir/
+# the kernel build system should go into the directory named somedir and look for any Makefile or Kbuild files inside
+```
+- Eg
+```bash
+# kbuild part of makefile
+obj-m := helloworld.o
+#the following is just an example
+#ldflags-y := -T foo_sections.lds
+# normal makefile
+KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
+all default: modules
+install: modules_install
+modules modules_install help clean:
+    $(MAKE) -C $(KERNEL_SRC) M=$(shell pwd) $@
+```
+
+### Out-of-tree building
