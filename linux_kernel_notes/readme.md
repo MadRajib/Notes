@@ -211,3 +211,93 @@ modules modules_install help clean:
 ```
 
 ### Out-of-tree building
+
+- Before you can build an external module, you need to have a complete and precompiled kernel source tree.
+-  There are two ways to obtain a prebuilt kernel version:
+    - __Building it by yourself__: This can be used for both native and cross-compilation. Using a build system such as Yocto or Buildroot may help.
+    - Installing the **linux-headers-*** package from the distribution package feed: This applies only for x86 native compilations unless your embedded target runs a Linux distribution that maintains a package feed (such as Raspbian).
+
+Note:
+ > It must be noted that is it not possible to build a built-in kernel module with out-of-tree building. \
+ > The reason is that building a Linux kernel module out of tree requires a prebuilt or prepared kernel
+
+**Native and out-of-tree module compiling**
+
+```bash
+sudo apt update
+sudo apt install linux-headers-$(uname -r)
+
+#  $(uname -r) corresponds to the
+kernel version in use
+```
+
+- To load and unload the build kernel
+```bash
+
+$ make
+
+..
+$ ls
+helloworld.c  helloworld.ko  helloworld.mod.c  helloworld.mod.o  helloworld.o  Makefile  module
+s.order  Module.symvers
+
+$ sudo insmod  helloworld.ko
+$ sudo rmmod helloworld
+$ dmesg
+[...]
+[308342.285157] Hello world initialization!
+[308372.084288] Hello world exit
+```
+
+**Out-of-tree module cross-compiling**
+
+- For building a cross-compiling an out-of-tree kernel module, two variables kernel **make** cmds needs
+    - **ARCH** : target architecture
+    - **CROSS_COMPILE**: cross-compiler prefix
+- When using a build system such as Yocto, the Linux kernel is first cross-compiled as a dependency before it starts cross
+compiling the module.
+- **KERNEL_SRC** variable is automatically exported by Yocto for kernel module recipies.
+- It is set to the value of **STAGING_KENREL_DIR** within the **module.bbclass** class inherited by all kernle module recipies.
+- what changes between native compilation and cross-compilation of an out-of-tree kernel module is the final
+make command,
+```bash
+# for 32 bit
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+# for 64 bit
+make ARCH=aarch64 CROSS_COMPILE=aarch64-linux-gnu-
+
+# assuming the cross-compiled kernel source path has been specified in the makefile.
+```
+
+### In-tree building
+
+- In-tree module building requires dealing with an additional file, **Kconfig**, which allows us to expose the module features in the configuration menu.
+
+- Add the following content to the Kconfig file of that directory:
+```bash
+config PACKT_MYCDEV
+    tristate "Our packtpub special Character driver"
+    default m
+    help
+      Say Y here to support /dev/mycdev char device.
+      The /dev/mycdev is used to access packtpub.
+```
+- In Makefile
+```bash
+obj-$(CONFIG_PACKT_MYCDEV)   += mychardev.o
+
+#  the .o file name must match the exact name of the .c file.
+```
+
+- In order to have your module built as a loadable kernel module, add the following line to your defconfig board in the **arch/arm/configs** directory:
+```bash
+CONFIG_PACKT_MYCDEV=m
+```
+- You can also run **menuconfig** to select it from the UI, run make to build the kernel, and then make modules to build modules (including yours).
+- To make the driver built-in, just replace m with y:
+```bash
+CONFIG_PACKT_MYCDEV=y
+```
+- Once configured, you can build the kernel with **make**, and build modules with **make modules**.
+- Modules included in the kernel source tree are installed in **/lib/modules/$(uname -r)/kernel/**
+
