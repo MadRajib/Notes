@@ -411,4 +411,12 @@ module_param_cb(enable_feature, &param_ops_enable, &enable_feature, 0644);
 
 - **EXPORT_SYMBOL()** instructs the Kbuild mechanism
 to include the symbol passed as an argument in the global list of kernel symbols.
+    - code that is built into the kernel itself can access any non-static symbol via an extern decleration.
+
+### Module dependencies concept
+- module A is using exported symbol from module B.
+- <code style="color : yellowgreen">depmod</code> utility:
+    - generates module dependency files.
+    - it reads each module in <code style="color : green">/lib/modules/\<kernel_release\>/</code> to determine what symbols it should export and what symbols it needs and writes it to <code style="color :">module.dep</code> file and <code style="color :">module.dep.bin</code>.
+
 
