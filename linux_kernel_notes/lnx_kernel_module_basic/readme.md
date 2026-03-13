@@ -400,7 +400,7 @@ static const struct kernel_param_ops param_ops_enable = {
 
 module_param_cb(enable_feature, &param_ops_enable, &enable_feature, 0644);
 
-// echo 0 > /sys/module/my_module/parameters/enable_feature
+//echo 0 | sudo tee /sys/module/hello_world_runtime_params/parameters/enable_feature
 ``` 
 
 ### Dealing with symbol exports and module dependencies
