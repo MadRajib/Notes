@@ -536,3 +536,36 @@ void init_driver(void) {
     kfree(dev);
 }
 ```
+
+#### Message printing
+- <code>pr_\<level\>(...)</code>: used in regular modules not in device drivers.
+- <code>dev-\<level\>(struct device *dev, ...)</code> used in device drivers not in network devices
+- <code>netdev_\<level\>(struct net_device *dev, ...)</code> for <code>netdev</code> drivers exclusively.
+
+| Module helpers | Driver helpers | Netdev helper | Description | Log level |
+|---|---|---|---|---|
+| `pr_debug`, `pr_devel` | `dev_dbg` | `netdev_dbg` | Used for debug messages. `pr_devel()` is dead code. This means it is not compiled at all, so it's not present in the final binary unless `DEBUG` is defined. The preferred way to go is `pr_debug`. | 7 |
+| `pr_info` | `dev_info` | `netdev_info` | You can use this for informational purposes, such as start up information at a driver initialization. | 6 |
+| `pr_notice` | `dev_notice` | `netdev_notice` | This is a notice – nothing serious but notable, nevertheless. It is often used to report security events. | 5 |
+| `pr_warning` | `dev_warn` | `netdev_warn` | A warning that means nothing serious by itself but might indicate problems. | 4 |
+| `pr_err` | `dev_err` | `netdev_err` | An error condition, often used by drivers to indicate difficulties with hardware. | 3 |
+| `pr_crit` | `dev_crit` | `netdev_crit` | A critical condition occurred, such as a serious hardware/software failure. | 2 |
+| `pr_alert` | `dev_alert` | `netdev_alert` | Something bad happened and action must be taken immediately. | 1 |
+| `pr_emerg` | `dev_emerg` | `netdev_emerg` | Emergency messages – the system is about to crash or is unstable. | 0 |
+
+- To check the log-level:
+```bash
+cat /proc/sys/kernel/printk
+4        4         1        7
+```
+- To change it
+```bash
+echo <level> > /proc/sys/kernel/printk
+```
+- It is common to define this message prefix with the module name, as follows:
+```c
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+#define pr_fmt(fmt) "%s: " fmt, __func__
+eg.
+#define pr_fmt(fmt) "Bluetooth: " fmt
+```
