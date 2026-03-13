@@ -466,3 +466,73 @@ sequenceDiagram
 - <code>modeprobe -r mymodule</code> a high level to unload the module.
 - <code>lsmod</code> to check if module is loaded or not.
 - <code>/proc/modules</code> to do the same with more info.
+
+#### Handling null pointer errors
+- when a function is suppose to return an valid pointer but for some other reason it has to return <code>NULL</code>, kernel provides three functions for this:
+```c
+// return error value as pointer
+// eg return ERR_PTR(-ENOMEM);
+void *ERR_PTR(long error); 
+
+// check if the return ptr is error pointer.
+// eg if (IS_ERR(foo))
+long IS_ERR(const void *ptr);
+
+// return the actuall error code
+// eg return PTR_ERR(foo);
+long PTR_ERR(const void *ptr);
+```
+
+example:
+```c
+#include <linux/err.h>
+#include <linux/slab.h>
+
+struct my_device_data {
+    int id;
+    void *buffer;
+};
+
+struct my_device_data *setup_my_device(int id) {
+    struct my_device_data *data;
+
+    data = kmalloc(sizeof(*data), GFP_KERNEL);
+    if (!data) {
+        // Convert the negative error code into an error pointer
+        return ERR_PTR(-ENOMEM);
+    }
+
+    data->id = id;
+    data->buffer = kmalloc(1024, GFP_KERNEL);
+    
+    if (!data->buffer) {
+        kfree(data);
+        // Return another specific error code
+        return ERR_PTR(-EIO);
+    }
+
+    return data;
+}
+
+// Caller must handle the error
+void init_driver(void) {
+    struct my_device_data *dev;
+
+    dev = setup_my_device(1);
+
+    // Check if the pointer is an error using IS_ERR
+    if (IS_ERR(dev)) {
+        // Extract the actual error code using PTR_ERR
+        long error_code = PTR_ERR(dev);
+        pr_err("Failed to setup device: %ld\n", error_code);
+        return;
+    }
+
+    // If we reach here, 'dev' is a valid pointer
+    pr_info("Device %d initialized successfully\n", dev->id);
+    
+    // Cleanup later
+    kfree(dev->buffer);
+    kfree(dev);
+}
+```
