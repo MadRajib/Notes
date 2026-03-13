@@ -460,3 +460,9 @@ sequenceDiagram
     - We can create as many <code>.conf</code> files we need.
     - These config files are processed by <code>systemd-modules-load.service</code> for <code>systemd</code>
     - Or <code>/etc/init.d/kmod</code> script process this file in <code>SysVinit</code>.
+
+#### Module unloading
+- <code>rmmod -f mymodule</code> to unload a module loaded by <code>insmod</code>.
+- <code>modeprobe -r mymodule</code> a high level to unload the module.
+- <code>lsmod</code> to check if module is loaded or not.
+- <code>/proc/modules</code> to do the same with more info.
