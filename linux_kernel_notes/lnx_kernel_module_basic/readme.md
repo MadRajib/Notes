@@ -419,4 +419,38 @@ to include the symbol passed as an argument in the global list of kernel symbols
     - generates module dependency files.
     - it reads each module in <code style="color : green">/lib/modules/\<kernel_release\>/</code> to determine what symbols it should export and what symbols it needs and writes it to <code style="color :">module.dep</code> file and <code style="color :">module.dep.bin</code>.
 
+#### Manual module loading
+- Module loading requires user to have <code style="color : name_color">root</code> access.
+- during developement use <code style="color : name_color">insmod</code>.
+```bash
+insmod /path/to/mydrv.ko
+```
+- <code style="color : name_color">modeprobe</code> is another cmd used in productions, it parses <code style="color : name_color">modules.dep</code> file in order to load dependencies first.
+```bash
+modprobe mydrv
+```
+#### Auto-loading
+- <code style="color : name_color">module.alias</code> maps devices to its drivers.
+- <code style="color : name_color">depmod</code> process modules files to extract info to generate <code style="color : name_color">module.alias</code>.
+- a userspace hotplug agent <code style="color : name_color">udev or mdev</code> will register with the kernel to get notified when a new device appears.
+- kernel sends the notification with device's description to the hotplug deamon, which in turn calls <code style="color : name_color">modprobe</code>
+with this info.
+- <code style="color : name_color">modprob</code> then parses the <code style="color : name_color">modules.alias</code> file in order to match the driver asociated with the device.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant K as Kernel
+    participant H as Hotplug Agent (udev/mdev)
+    participant M as modprobe
+    participant A as modules.alias
+
+    Note over A: depmod extracts info to generate this file
+
+    K->>H: Device Discovery: Send uevent (Device Description)
+    Note right of K: Notification sent via Netlink socket
+    H->>M: Call modprobe with device description
+    M->>A: Parse file to match driver with device info
+    A-->>M: Return matching driver module
+    M->>K: Load driver module into kernel
+```
