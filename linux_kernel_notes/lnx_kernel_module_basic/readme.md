@@ -454,3 +454,9 @@ sequenceDiagram
     A-->>M: Return matching driver module
     M->>K: Load driver module into kernel
 ```
+
+- Another way to load the module at boot time is:
+    - creating a file <code>/etc/module-load.d/\<filename.conf>.conf</code> add the module names that should be loaded, one per line.
+    - We can create as many <code>.conf</code> files we need.
+    - These config files are processed by <code>systemd-modules-load.service</code> for <code>systemd</code>
+    - Or <code>/etc/init.d/kmod</code> script process this file in <code>SysVinit</code>.
