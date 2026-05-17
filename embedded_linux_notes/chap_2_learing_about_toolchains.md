@@ -3,6 +3,17 @@
 - [Intro to Toolchain](#intro-to-toolchain)
 - [Types of toolchains](#types-of-toolchains)
 - [CPU Architectures](#cpu-architectures)
+- [Choosing C library](#choosing-c-library)
+- [Anatomy of a toolchain](#anatomy-of-a-toolchain)
+    - [Finding out about your cross compiler](#finding-out-about-your-cross-compiler)
+    - [sysroot, library and header files](#sysroot-library-and-header-files)
+    - [Other tools in the toolchain](#other-tools-in-the-toolchain)
+- [Static libraries](#static-libraries)
+- [Shared libraries](#dynamic-libraries)
+    - [Shared library version numbers](#shared-library-version-numbers)
+- [Autotools machine types](#autotools-machine-types)
+- [Package configuration](#package-configuration)
+
 
 ### Technical Requirements
 ```bash
