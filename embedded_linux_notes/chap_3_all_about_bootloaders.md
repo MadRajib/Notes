@@ -73,3 +73,61 @@ $ dtc simpledts-1.dts -o simpledts-1.dtb
 Bootloader can use device tree to initialize embedded SoC and its peripherals.
 
 ## U-Boot
+[read docs](https://docs.u-boot.org/en/latest/)
+
+mailing list : u-boot@lists.denx.de
+submitting form @: https://lists.denx.de/listinfo/u-boot
+
+### Building U-Boot
+
+```bash
+$ git clone https://source.denx.de/u-boot/u-boot.git u-boot-mainline
+$ cd u-boot-mainline
+$ git checkout v2024.04
+```
+- there are more than 1000 configuration files for common dev boards and devices in `configs/`.
+- for `BeagleBone Black` file will be `configs/am335x_evm_defconfig` and the text **The binary produced by this board supports ... Beaglebone Black** board readme file in `board/ti/am335x/README`.
+- Now you need to inform U-boot of the prefix for your cross compiler by setting the `CROSS_COMPILER` make variable
+- Then selecting the conf file using a cmd of the  `make [board]_defconfig`.
+
+```bash
+$ source ../MELP/Chapter02/set-path-arm-cortex_a8-linux-gnueabihf
+$ make am335x_evm_defconfig
+$ make
+```
+
+set-path-arm-cortex_a8-linux-gnueabihf
+```bash
+PATH=${HOME}/x-tools/arm-cortex_a8-linux-gnueabihf/bin/:$PATH
+export CROSS_COMPILE=arm-cortex_a8-linux-gnueabihf-
+export ARCH=arm
+```
+
+The result of this is:
+- `u-boot`: U-boot in ELF object format
+- `u-boot.map`: the symbol table
+- `u-boot.bin`: raw binary format, suitable for running on your device
+- `u-boot.img`: `u-boot.bin` with a U-boot header added, suitable for uploading to a running copy of U-Boot.
+- `u-boot.srec`: U-Boot in  Motorola S-record suitable for transferring over a serial connection.
+
+The BeagleBone Black also requies a `SPL`, this file is named `MLO`.
+```bash
+$ ls -l MLO u-boot*
+```
+
+For `BeaglePlay` : file named `am62x_evm_a53_defconfig`.
+
+In same dir there is another conf `am62x_evm_r5_defconfig` that is for beagleplay's Arm Cortex-R5F microcontroller.
+- The ROM code runs on ARM Cortex-R5F and the TPL runs on the main A53 CPU.
+- There are two U-Boot SPLs:
+    - one that runs on the R5
+    - and another that runs on the main CPU.
+    - `doc/board/beagle/am62x_beagleplay.rst` unique boot flow.
+
+Building U-Boot for BeaglePlay is a multi-stage process.
+- The Arm Cortex M4F and Cortex R5F in am62x SoC are 32bit processors, so they require a 32-bit toolchain.
+- A software component called `TI Foundational Security (TIFS)` runs on the M4.
+- TIFS starts the R5 and asks it to load a firmware image to the TIFS core.
+    - That means we need to bundle a TIFS binary firmware image for the M4 together with a U-Boot SPL when generating a bootloader image for the R5.
+- Next we need to build `Trusted Firmware-A (TF-A)` for the main A53 CPU using a 64 bit toolchain.
+- Lastly we configure and build a U-Boot SPL and TPL for the main CPU.
