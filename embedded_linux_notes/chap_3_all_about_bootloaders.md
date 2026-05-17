@@ -126,8 +126,4 @@ In same dir there is another conf `am62x_evm_r5_defconfig` that is for beaglepla
 
 Building U-Boot for BeaglePlay is a multi-stage process.
 - The Arm Cortex M4F and Cortex R5F in am62x SoC are 32bit processors, so they require a 32-bit toolchain.
-- A software component called `TI Foundational Security (TIFS)` runs on the M4.
-- TIFS starts the R5 and asks it to load a firmware image to the TIFS core.
-    - That means we need to bundle a TIFS binary firmware image for the M4 together with a U-Boot SPL when generating a bootloader image for the R5.
-- Next we need to build `Trusted Firmware-A (TF-A)` for the main A53 CPU using a 64 bit toolchain.
-- Lastly we configure and build a U-Boot SPL and TPL for the main CPU.
+- A proper bootflow is present in [beagleplay_boot_flow](./beagle_play.md)
