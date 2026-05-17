@@ -73,3 +73,25 @@ vendor: unknown
 kernel: linux
 user space: gnu
 ```
+
+### Choosing C library
+
+- `C library` it is the gateway to the kernel for linux program.
+- Even if other language will have support libraries will have to call the C lib eventually.
+
+```bash
+APP -> C LIB -> Linux Kernel
+```
+- It is possible to bypass the C lib by making the kernel system calls directly, but its difficult and unnecessary.
+- Various Clibs are present
+    - `glibc`: standard GNU C lib. It is big and until now not very configurable but it the most complete implementation fo the POSIX API.
+    - `musl libc`: good for limited amount of RAM and storage.
+    - `uClibc-ng`: micro controller C lib.
+
+```mermaid
+flowchart TD
+    A{using uClinux ?} --> |yes| UCLibc-ng
+    A{using uClinux ?} --> |no| B{< 32 Mib Storage}
+    B{< 32 Mib Storage ?} --> |yes| C(musl_libc / UCLibc-ng)
+    B{< 32 Mib Storage} --> |no| glibc
+```
