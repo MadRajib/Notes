@@ -3,7 +3,10 @@
 1. TiVo their first DVR with linux (1999)
 
 ### Topics
-- When not to choose linux
+- [When not to choose linux](#when-not-to-choose-linux)
+- [Four Elements of embedded Linux](#four-elements-of-embedded-linux)
+- [Choosing the hardware](#selecting-hardware-for-embedded-linux)
+- [Optaining the hardware](#optaning-the-hardware)
 
 ### When not to choose Linux
 - when you are limited with hardware resources since linux requires 32 bit processor and lots more memory.
