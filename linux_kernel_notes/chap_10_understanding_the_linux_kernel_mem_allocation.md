@@ -247,3 +247,92 @@ Note:
 * in other words every virtual access would result in five physical mem accesses.
 * Virtual mem concept would be useless if its access were four times slower than physical access.
 * Modern CPUs use a small associative and very fast mem called `Translation Lookaside Buffer (TLB)` in order to cache the PTEs of recently accessed virtual pages.
+
+### Page Lookup and TLB
+* it is a `Content Addressable Memory (CAM)`
+    * key: VA
+    * value: PA
+* Cache for MMU
+* On TLB miss, two possibilities.
+    1. `Software Handling`
+        * CPU raises TLB miss interrupt, caught by OS
+        * OS walks through the process's PT to find the right PTE.
+        * If exits then CPU installs the new translation in the TLB.
+        * Otherwise page fault handler is executed (`do_page_fault()`)
+    1. `Hardware Handling`:
+        * MMU has to walk through the PT.
+        * If miss then CPU raises a page fault interrupt, handled by OS (`do_page_fault()`)
+* On ARM, the location of the translation table must be written in `control` coprocessor 15 (CP15) `c2` register, and then enable the caches and MMU by writing to CP15 `c1` register.
+
+## Kernel Memory Allocators
+<img src="assets/chap10_mem_allocators.png" width="400" alt="Mem Allocators">
+
+* `page allocator`: The main and lowest level allocator.
+    * `vmalloc` relies on this
+* `slab allocator`: build on top of `page allocator`, getting pages from it and splitting them into smaller mem entities (by means of slab and caches).
+    * `kmalloc` relies on this allocator.
+* We can directly talk to the slab to request mem from its caches or even build our own caches.
+
+
+### The Page Allocator
+
+* Brings page and page frame into the picture.
+    * Physical mem is organized into fixed-size blocks: page frame.
+    * While Virtual mem is organized into fixed-size blocks: pages.
+    * Page Size == Frame Size.
+* At this level `Page` is the lowest-level unit of memory that OS will give to any mem request at a low level.
+* Lowest-level allocator, it allocates and deallocates blocks pages using the `buddy algo`.
+
+APIS:
+* Pages are allocated in blocks -> Power of 2 in size.
+* Pages returned from this allocation are physically contiguous.
+* `alloc_pages()` main api.
+
+    ```c
+    struct page *alloc_pages(gfp_t mask, unsigned int order)
+    ```
+* return `NULL` when no page can be allocated, otherwise it allocates 2<sup>order</sup> pages and returns ptr to an instance of `struct page`, which points to the first page of the reserved block.
+* For single page API: `alloc_page`
+    ```c
+    #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
+    ```
+* `__free_pages()` must be used to release memory pages allocated with the
+`alloc_pages()` function.
+    ```c
+    void __free_pages(struct page *page, unsigned int order);
+    // takes first page of the allocated block
+    ```
+* `__get_free_pages()` and `__get_free_page()` to get (logical) addr of the reserved block.
+    ```c
+    unsigned long __get_free_pages(gfp_t mask, unsigned int order);
+    unsigned long __get_free_page(gfp_t gfp_mask);
+    // unsigned long get_zeroed_page(gfp_t mask);
+    ```
+* `free_pages` is to free a page allocation for `__get_free_pages()`
+    ```c
+    free_pages(unsigned long addr, unsigned int order);
+    ```
+* `mask` specifies the `mem zones` from where the pages should be allocated and the behavior of the allocators.
+    1. `GFP_USER`: For user memory allocation.
+    1. `GFP_KERNEL`: The commonly used flag for kernel allocation.
+    1. `GFP_HIGHMEM`: This requests memory from the HIGH_MEM zone.
+    1. `GFP_ATOMIC`: This allocates memory in an atomic manner that cannot sleep. It is used when we need to allocate memory from an interrupt context.
+
+Note: 
+> * `GFP_HIGHMEM` flag with `__get_free_pages()` (or `__get_free_page()`) or not, it won't be considered.  
+> * This flag is masked out in these functions to make sure that the returned address never represents high-memory pages (because of their nonlinear/permanent mapping). If you need high memory, use `alloc_pages()` and then `kmap()` to access it.
+> * The max order that can be used varies between architectures, depends on `FORCE_MAX_ZONEORDER` config flag, `11` by default.
+
+* `page_to_virt()` function is used to convert a struct page (as returned by `alloc_pages()`, for example) into a kernel logical address.
+* `virt_to_page()` takes a kernel logical address and returns its associated `struct page` instance (as if it was allocated using the `alloc_pages()` function).
+    ```c
+    struct page *virt_to_page(void *kaddr);
+    void *page_to_virt(struct page *pg)
+
+    // wraps page_to_virt() and returns
+    // the logical address of the page passed; why needed ?
+    void *page_address(const struct page *page)
+    ```
+
+### Slab Allocator
+* Main purpose are to eliminate fragmentation caused by mem (de)allocation, which is caused by buddy system in case of small-size mem allocation and to speed up mem allocation for commonly used objects. 
