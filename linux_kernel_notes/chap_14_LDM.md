@@ -638,3 +638,240 @@ struct attribute_group {
     * A well-known example is devices appearing in both `/sys/bus` and `/sys/devices` since a bus controller is first a device on its own before exposing a bus.
  
     * However, note that any symbolic links that are created will be persistent (unless the system is rebooted), even after target removal. Thus, the driver must consider that when the associated device leaves the system or when the module is unloaded.
+
+### Device-, driver-, bus- and class- related attributes
+* All these frameworks proviodes attribute abstraction and file creation on top of low level kobjects.
+* Each framework provides a framework-specific attribute data structure that encloses the default attribute and allows us to provide a custom show/store callback.
+* Drivers
+    ```c
+    struct driver_attribute {
+        struct attribute attr;
+        ssize_t (*show)(struct device_driver *driver,
+                        char *buf);
+        ssize_t (*store)(struct device_driver *driver,
+                        const char *buf, size_t count);
+    };
+    ```
+* Classes
+    ```c
+    struct class_attribute {
+        struct attribute attr;
+        ssize_t (*show)(struct class *class,
+                        struct class_attribute *attr, char *buf);
+        ssize_t (*store)(struct class *class,
+                        struct class_attribute *attr,
+                        const char *buf, size_t count);
+    };
+    ```
+* Bus
+    ```c
+    struct bus_attribute {
+        struct attribute attr;
+        ssize_t (*show)(struct bus_type *bus, char *buf);
+        ssize_t (*store)(struct bus_type *bus,
+                        const char *buf, size_t count);
+    };
+    ```
+* Devices
+    ```c
+    struct device_attribute {
+        struct attribute attr;
+        ssize_t (*show)(struct device *dev,
+                        struct device_attribute *attr,
+                        char *buf);
+        ssize_t (*store)(struct device *dev,
+                        struct device_attribute *attr,
+                        const char *buf, size_t count);
+    };
+    ```
+* They can be dynamically allocated with `kzalloc()` and initialized by setting the
+fields of their inner attribute elements and providing the appropriate callback
+functions.
+* each framework provides a set of macros to statically allocate, initialize, and assign a single instance of their respective attribute data structure.
+* Bus
+    ```c
+    BUS_ATTR_RW(_name)
+    BUS_ATTR_RO(_name)
+    BUS_ATTR_WO(_name)
+    ```
+    * the resulting bus attribute variable is named `bus_attr_<_name>`.
+* Drivers
+    ```c
+    DRIVER_ATTR_RW(_name)
+    DRIVER_ATTR_RO(_name)
+    DRIVER_ATTR_WO(_name)
+    ```
+    * `driver_attr_<_name>`
+* Class
+    ```c
+    CLASS_ATTR_RW(_name)
+    CLASS_ATTR_RO(_name)
+    CLASS_ATTR_WO(_name)
+    ```
+    * `class_attr_<_name>`
+* Device
+    ```c
+    DEVICE_ATTR(_name, _mode, _show, _store)
+    DEVICE_ATTR_RW(_name)
+    DEVICE_ATTR_RO(_name)
+    DEVICE_ATTR_WO(_name)
+    ```
+    * `dev_attr_<_name>`
+* Because all these macros are built on top of `__ATTR_RW`, `__ATTR_RO`, and
+`__ATTR_WO`, they statically allocate and initialize a single instance of the
+framework-specific attribute data structure and assume the show/store functions are named `<attribute_name>_show` and `<attribute_name>_store`.
+* Creating files apis:
+    ```c
+    int device_create_file(struct device *device,
+                            const struct device_attribute *entry);
+    int driver_create_file(struct device_driver *driver,
+                            const struct driver_attribute *attr);
+    int bus_create_file(struct bus_type *bus, struct bus_attribute *);
+    int class_create_file(struct class *class,
+                            const struct class_attribute *attr)
+    ```
+* Example
+    ```c
+    int device_create_file(struct device *dev,
+                        const struct device_attribute *attr)
+    {
+        [...]
+        error = sysfs_create_file(&dev->kobj, &attr->attr);
+        [...]
+    }
+
+    int class_create_file(struct class *cls,
+                        const struct class_attribute *attr)
+    {
+        [...]
+        error = sysfs_create_file(&cls->p->class_subsys.kobj, &attr->attr);
+        return error;
+    }
+
+    int bus_create_file(struct bus_type *bus,
+                        struct bus_attribute *attr)
+    {
+        [...]
+        error = sysfs_create_file(&bus->p->subsys.kobj, &attr->attr);
+        [...]
+    }
+    ```
+* Removing files
+    ```c
+    void device_remove_file(struct device *device,
+                            const struct device_attribute *entry);
+    void driver_remove_file(struct device_driver *driver,
+                            const struct driver_attribute *attr);
+    void bus_remove_file(struct bus_type *, struct bus_attribute *);
+    void class_remove_file(struct class *class,
+                            const struct class_attribute *attr);
+    ```
+* Example device's implementation `drivers/base/core.c`
+    ```c
+    static ssize_t dev_attr_show(struct kobject *kobj,
+                                struct attribute *attr,
+                                char *buf)
+    {
+        struct device_attribute *dev_attr = to_dev_attr(attr);
+        struct device *dev = kobj_to_dev(kobj);
+        ssize_t ret = -EIO;
+        
+        if (dev_attr->show)
+            ret = dev_attr->show(dev, dev_attr, buf);
+
+        if (ret >= (ssize_t)PAGE_SIZE) {
+            print_symbol("dev_attr_show: %s returned bad count\n",
+                            (unsigned long)dev_attr->show);
+        }
+        
+        return ret;
+    }
+
+    static ssize_t dev_attr_store(struct kobject *kobj,
+                                struct attribute *attr,
+                                const char *buf, size_t count)
+    {
+        struct device_attribute *dev_attr = to_dev_attr(attr);
+        struct device *dev = kobj_to_dev(kobj);
+        ssize_t ret = -EIO;
+        if (dev_attr->store)
+            ret = dev_attr->store(dev, dev_attr, buf, count);
+        return ret;
+    }
+
+    static const struct sysfs_ops dev_sysfs_ops = {
+        .show = dev_attr_show,
+        .store = dev_attr_store,
+    };
+    ```
+    * `to_dev_attr()`
+    ```c
+    #define to_dev_attr(_attr) \
+        container_of(_attr, struct device_attribute, attr)
+    ```
+## Making a sysfs attribute poll- and selectcompatible
+* the main idea here is to allow the `poll()` or `select()` system calls to be used on a given attribute to passively wait for a change. 
+* This change could be firmware becoming available, an alarm notification, or information that the attribute value has changed.
+* driver must invoke `sysfs_notify()` to release any sleeping user.
+    ```c
+    void sysfs_notify(struct kobject *kobj, const char *dir,
+                        const char *attr)
+    ```
+    * If the `dir` param is not `NULL`, it is used to find a subdirectory from within
+    the directory of `kobj`, which contains the attribute (presumably created by
+    `sysfs_create_group`).
+    * This call will cause any polling process to wake up and
+    process the event (which might be reading the new value, handling the alarm,
+    and so on).
+    * Example
+    ```c
+    static ssize_t store(struct kobject *kobj,
+                        struct attribute *attr,
+                        const char *buf, size_t len)
+    {
+        struct d_attr *da = container_of(attr, struct d_attr, attr);
+        
+        sscanf(buf, "%d", &da->value);
+        pr_info("sysfs_foo store %s = %d\n", a->attr.name, a->value);
+
+        if (strcmp(a->attr.name, "foo") == 0){
+            foo.value = a->value;
+            sysfs_notify(mykobj, NULL, "foo");
+        } else if(strcmp(a->attr.name, "bar") == 0){
+            bar.value = a->value;
+            sysfs_notify(mykobj, NULL, "bar");
+        }
+            
+        return sizeof(int);
+    }
+    ```
+    * note that upon notification, `poll()` returns `POLLERR|POLLPRI` (as are flags, which users must request while invoking `poll()`), while `select()` returns the file descriptor, whether it is waiting for read, write, or exception events.
+
+How the Wake-Up Mechanism Works
+1. The Userspace Side (Waiting)
+A userspace application sets up a file descriptor and waits for changes without burning CPU time:
+    ```c
+    int fd = open("/sys/kernel/demo/foo", O_RDONLY);
+    struct pollfd pfd = {
+        .fd = fd,
+        .events = POLLPRI | POLLERR, // Listen for priority/exception events
+    };
+
+    while (1) {
+        // This blocks until the kernel triggers a notification
+        poll(&pfd, 1, -1); 
+
+        // Once woken up, read the updated value
+        lseek(fd, 0, SEEK_SET);
+        read(fd, buf, sizeof(buf));
+        printf("Value changed: %s\n", buf);
+    }
+    ```
+2. The Kernel Side (sysfs_notify)
+When a userspace process runs `echo 5 > /sys/kernel/demo/foo`, your `store()` function runs:
+    1. It updates the internal value `(foo.value = a->value;)`.
+    1. It calls `sysfs_notify(mykobj, NULL, "foo")`;.
+    1. What `sysfs_notify` does internally:
+        * It looks up the sysfs file node "foo" associated with mykobj.
+        * It checks if any VFS/sysfs wait queues are listening on that file descriptor.
+        * It wakes up those sleeping threads by signaling an event (typically `POLLPRI / priority` data ready).
