@@ -564,6 +564,77 @@ macros:
         [...]
         return count;
     }
-
     ```
+### Attribut group
+```c
+struct attribute_group {
+    const char *name;
+    umode_t (*is_visible)(struct kobject *,
+                        struct attribute *, int);
+    umode_t (*is_bin_visible)(struct kobject *,
+                        struct bin_attribute *, int);
+    struct attribute **attrs;
+    struct bin_attribute **bin_attrs;
+};
+```
+* if unamed: place all the attrs directly in the kobj directory when defining a group of attrbs.
+* if named: a subdirectory will be created for the attribs, with dir name being the name of the attribute group.
+* `is_visible()`: optional cb: return the permission associated with a specific attr in the group.
+    * It will be called repeatedly for each(no-binary) attr in the group.
+    * must then return the read/write permission of the attribute, or `0` if attr is not supposed to be accessed at all.
+* `is_bin_visible()` : counter part of `is_visible()` for binary attrib.
+* `attrs`: ptr to a `NULL` terminated list of attributes.
+* `bin_attrs` : for bin attribs.
+* Add/Remove apis: 
+    ```c
+    int sysfs_create_group(struct kobject *kobj,
+                            const struct attribute_group *grp)
+    void sysfs_remove_group(struct kobject * kobj,
+                            const struct attribute_group * grp)
+    ```   
+* Example:
+    ```c
+    static struct kobj_attribute foo_attr = __ATTR(foo, 0660, attr_show, attr_store);
+    static struct kobj_attribute bar_attr = __ATTR(bar, 0660, attr_show, attr_store);
 
+    /* attrs is aa array of pointers to attributes */
+    static struct attribute *demo_attrs[] = {
+        &bar_foo_attr.attr,
+        &bar_attr.attr,
+        NULL,
+    };
+
+    static struct attribute_group my_attr_group = {
+        .attrs = demo_attrs,
+        /*.bin_attrs = demo_bin_attrs,*/
+    };
+    ```
+* To create attributes in a single shot use `sysfs_create_group()`:
+    ```c
+    struct kobject *demo_kobj;
+    int err;
+
+    demo_kobj = kobject_create_and_add("demo", kernel_kobj);
+    if (!demo_kobj) {
+        pr_err("demo: demo_kobj registration failed.\n");
+        return -ENOMEM;
+    }
+
+    err = sysfs_create_group(demo_kobj, &my_attr_group);
+    if (err) {
+        kobject_put(demo_kobj);
+        return err;
+    }
+    ```
+### Symbolic Links
+* Drivers can create/remove symbolic links on existing kobjects (directories) using `sysfs_{create|remove}_link()` functions:
+    ```c
+    int sysfs_create_link(struct kobject * kobj,
+                        struct kobject * target, char * name);
+
+    void sysfs_remove_link(struct kobject * kobj, char * name);
+    ```
+    * The create function will create a symbolic link called `name` that points to the remote `target` kobject's sysfs entry.
+    * A well-known example is devices appearing in both `/sys/bus` and `/sys/devices` since a bus controller is first a device on its own before exposing a bus.
+ 
+    * However, note that any symbolic links that are created will be persistent (unless the system is rebooted), even after target removal. Thus, the driver must consider that when the associated device leaves the system or when the module is unloaded.
