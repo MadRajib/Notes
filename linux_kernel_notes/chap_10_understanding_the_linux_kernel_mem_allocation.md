@@ -335,4 +335,30 @@ Note:
     ```
 
 ### Slab Allocator
-* Main purpose are to eliminate fragmentation caused by mem (de)allocation, which is caused by buddy system in case of small-size mem allocation and to speed up mem allocation for commonly used objects. 
+* Main purpose are to eliminate fragmentation caused by mem (de)allocation, which is caused by buddy system in case of small-size mem allocation and to speed up mem allocation for commonly used objects.
+
+### Buddy Algorithm
+* Buddy system of memory management attempts to be fast at allocating block of correct size and also, easy to merge adjacent holes.
+* We create several free block lists, each for a power-of-two size.
+* So, for example, if the minimum allocation size is 8 bytes, and the memory size is 1MB, we create a list for 8 bytes hole, a list for 16 byte holes, one for 32-bytes holes, 64, 128, 256, 512, 1K, 2K, 4K, 8K, 16K, 32K, 64K, 128K, 256K, 512K and one list for 1MB holes.
+* All the lists are initially empty, except for the 1MB list, which has one hole listed.
+* All allocations are rounded up to power of 2. eg 70k -> 128k, 15k -> 16k etc.
+
+
+* The buddy system allows a single allocation block to be split, to form two blocks half the size of the parent block, known as 'buddies'. And buddy of block B must be the same size as B, and must be adjacent in memory (so that it is possible to merge them later).
+* The other important property of buddies, every block is at an address in memory which is exactly divisible by its size.
+    *  So all the 16-byte blocks are at addresses which are multiples of 16; all the 64K blocks are at addresses which are multiples of 64K... and so on.
+* Not only must buddies be adjacent in memory, but the lower 'buddy' must be at a location divisible by their combined size.
+    * For example, of two 64K blocks, they are only buddies if the lower block lies at an address divisible by 128K.
+
+Allocation and deallocation:
+<p float="left">
+    <img src="assets/chap10_buddy_alloc.png" width="42.4%" alt="Buddy Allocation">
+    <img src="assets/chap10_buddy_dealloc.png" width="49%" alt="Buddy Deallocation">
+</p>
+
+* Its fast, but wastes a lot of space due to `internal fragmentation`, since power of 2, around 20% waste.
+
+### Slab Allocator
+
+* `Slab` : 
