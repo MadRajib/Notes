@@ -1,3 +1,16 @@
+## Table of Contents
+
+- [LDM](#ldm)
+- [`struct kobject`](#struct-kobject)
+- [`kobj_type` structure](#kobj_type-structure)
+- [`kset` structure](#kset-structure)
+- [Non-default attributes](#non-default-attributes)
+- [Binary Attr](#binary-attr)
+- [Attribute group](#attribute-group)
+- [Symbolic Links](#symbolic-links)
+- [Device-, driver-, bus- and class- related attributes](#device--driver--bus--and-class--related-attributes)
+- [Making a sysfs attribute poll- and select- compatible](#making-a-sysfs-attribute-poll--and-select--compatible)
+
 ### LDM
 * `LDM` relies on 3 lowest level DS:
     1. `kobject`
@@ -565,7 +578,7 @@ macros:
         return count;
     }
     ```
-### Attribut group
+### Attribute group
 ```c
 struct attribute_group {
     const char *name;
@@ -809,7 +822,7 @@ framework-specific attribute data structure and assume the show/store functions 
     #define to_dev_attr(_attr) \
         container_of(_attr, struct device_attribute, attr)
     ```
-## Making a sysfs attribute poll- and selectcompatible
+### Making a sysfs attribute poll- and select- compatible
 * the main idea here is to allow the `poll()` or `select()` system calls to be used on a given attribute to passively wait for a change. 
 * This change could be firmware becoming available, an alarm notification, or information that the attribute value has changed.
 * driver must invoke `sysfs_notify()` to release any sleeping user.
