@@ -1,6 +1,8 @@
 ## Table of Contents
 
 - [LDM](#ldm)
+    - [BUS DS](#bus-ds)
+- [Deep Dive In LDM](#deep-dive-in-ldm)
 - [`struct kobject`](#struct-kobject)
 - [`kobj_type` structure](#kobj_type-structure)
 - [`kset` structure](#kset-structure)
@@ -11,7 +13,260 @@
 - [Device-, driver-, bus- and class- related attributes](#device--driver--bus--and-class--related-attributes)
 - [Making a sysfs attribute poll- and select- compatible](#making-a-sysfs-attribute-poll--and-select--compatible)
 
-### LDM
+### LDM(Linux Device Model)
+* LDM Introduced following features:
+    * The concept of classes. They are used to group devices of the same type or that expose the same functionalities (for example, mice and keyboards are both input devices).
+    * Communication with the user space through a virtual filesystem, allowing
+    you to manage and enumerate devices and the properties they expose from
+    user space.
+    * Object life cycle management using reference counting.
+    * A power management facility, allowing you to handle the order in which devices should shut down.
+    * The reusability of the code. Classes and frameworks expose interfaces, behaving like a contract that any driver that registers with them must respect.
+    * An `object-oriented (OO)`-like programming style and encapsulation in the kernel.
+* LDM introduced device hierarchy.
+* It is built on top of a few data structures.
+    * The bus: `struct bus_type`
+    * The device: `struct device`
+    * The device driver: `struct device_driver`
+#### Bus DS
+* A bus is a channel link between devices and the processor.
+* `bus controller`: The hardware entity that manages the bus and exports its protocol to devices.
+    * Eg: the USB controller provides USB support, while the I2C controller provides I2C bus support.
+* However, the bus controller, being a device on its own, must be registered like any device.
+    *  It will be the parent of the devices that need to sit on this bus.
+    ```c
+    struct bus_type {
+        const char *name;
+        const char *dev_name;
+        struct device *dev_root;
+        const struct attribute_group **bus_groups;
+        const struct attribute_group **dev_groups;
+        const struct attribute_group **drv_groups;
+        int (*match)(struct device *dev,
+                    struct device_driver *drv);
+        int (*probe)(struct device *dev);
+        void (*sync_state)(struct device *dev);
+        int (*remove)(struct device *dev);
+        void (*shutdown)(struct device *dev);
+        int (*suspend)(struct device *dev, pm_message_t state);
+        int (*resume)(struct device *dev);
+                    const struct dev_pm_ops *pm;
+        [...]
+    };
+    ```
+    * `match`: cb invoked whenever a new device/driver is added to this bus.
+    * `probe`: cb invoked whenever a new device/driver is added to this bus after match has occurred.
+        * responsible for allocation specific bus device struct and calling driver's `probe` which is suppose to manage the device.
+    * `remove`: when device lease this bus.
+* Example
+    ```c 
+    // packt.h
+    #ifndef _PACKT_H
+    #define _PACKT_H
+
+    #include <linux/device.h>
+
+    struct packt_device {
+        const char *name;       /* match key */
+        int id;
+        struct device dev;
+    };
+    #define to_packt_device(d) container_of(d, struct packt_device, dev)
+
+    struct packt_driver {
+        int  (*probe)(struct packt_device *pdev);
+        void (*remove)(struct packt_device *pdev);
+        struct device_driver driver;
+        // const struct i2c_device_id *id_table;
+    };
+    
+    #define to_packt_driver(d) container_of(d, struct packt_driver, driver)
+    
+    int packt_register_driver(struct packt_driver *driver);
+    void packt_unregister_driver(struct packt_driver *driver);
+    int packt_register_device(struct packt_device *packt);
+    void packt_unregister_device(struct packt_device *packt);
+
+    struct packt_device * packt_device_alloc(const char *name, int id);
+
+    #endif
+    ```
+    * Apart from `bus_type`, the bus driver must define a bus-specific driver struct extending generic `struct device_driver`. here `struct packt_driver`.
+    * The bus driver must also allocate a bus-specific device struct for each physical devices on the bus. here `struct packt_device`.
+    * It is also responsible to setting up device's bus and parent fields, as well as registering them with the LDM core.
+        * These fields must point to the `bus_type` and the `bus_device` struct that are defined in bus driver.
+    * Each bus manages two important lists:
+        1. list of devices that have been added and sitting on it.
+        1. list of drivers that have been registered.
+    * Bus driver must provide apis to register/unregister device drivers and devices.
+        * these apis wraps generic apis from LDM core:
+            * `diver_register()`, `device_register`, `diver_unregister()`, `device_unregister`.
+        ```c
+        // packt_bus.c
+        #include <linux/module.h>
+        #include <linux/string.h>
+        #include "packt.h"
+        /*
+        * Let's write and export symbols that people
+        * writing drivers for packt devices must use.
+        */
+        int packt_register_driver(struct packt_driver *driver)
+        {
+            driver->driver.bus = &packt_bus_type;
+            return driver_register(&driver->driver);
+        }
+        EXPORT_SYMBOL(packt_register_driver);
+        
+        void packt_unregister_driver(struct packt_driver *driver)
+        {
+            driver_unregister(&driver->driver);
+        }
+        EXPORT_SYMBOL(packt_unregister_driver);
+        
+        int packt_register_device(struct packt_device *packt)
+        {
+            packt->dev.bus = &packt_bus_type;
+            return device_register(&packt->dev);
+        }
+        EXPORT_SYMBOL(packt_device_register);
+        
+        void packt_unregister_device(struct packt_device *packt)
+        {
+            device_unregister(&packt->dev);
+        }
+        EXPORT_SYMBOL(packt_unregister_device);
+
+        // To initialize packt device
+        struct packt_device * packt_device_alloc(const char *name, int id)
+        {
+            struct packt_device *packt_dev;
+            int status;
+            
+            packt_dev = kzalloc(sizeof(*packt_dev), GFP_KERNEL);
+            if (!packt_dev)
+                return NULL;
+            
+            /* devices on the bus are children of the bus device */
+            strcpy(packt_dev->name, name);
+            packt_dev->dev.id = id;
+
+            dev_dbg(&packt_dev->dev, "device [%s] registered with PACKT bus\n",
+                                                        packt_dev->name);
+            return packt_dev;
+        }
+        EXPORT_SYMBOL_GPL(packt_device_alloc);
+        ```
+        * `packt_device_alloc` function allocates a bus-specific device struct that must be used to register a `PACKT` device with the bus.
+        * To define `PACKT` controller
+        ```c
+        //packt_bus.c
+        struct packt_controller {
+            char name[48];
+            struct device dev; /* the controller device */
+            struct list_head list;
+            int (*send_msg) (stuct packt_device *pdev,
+                            const char *msg, int count);
+            int (*recv_msg) (stuct packt_device *pdev,
+                            char *dest, int count);
+        };
+
+        /* system global list of controllers */
+        static LIST_HEAD(packt_controller_list);
+        struct packt_controller *packt_alloc_controller(struct device *dev)
+        {
+            struct packt_controller *ctlr;
+            if (!dev)
+                return NULL;
+            ctlr = kzalloc(sizeof(packt_controller), GFP_KERNEL);
+            
+            if (!ctlr)
+                return NULL;
+            
+            device_initialize(&ctlr->dev);
+            [...]
+            return ctlr
+        }
+        EXPORT_SYMBOL_GPL(packt_alloc_controller);
+        
+        int packt_register_controller(struct packt_controller *ctlr)
+        {
+            /* must provide at least on hook */
+            if (!ctlr->send_msg && !ctlr->recv_msg){
+                pr_err("Registering PACKT controller failure\n");
+            }
+            
+            device_add(&ctlr->dev);
+            [...] /* other sanity check */
+            list_add_tail(&ctlr->list, &packt_controller_list);
+        }
+        EXPORT_SYMBOL_GPL(packt_register_controller);
+        ```
+        * Note that after registering a controller, it will appear under `/sys/devices` in sysfs. Any devices that are added to this bus will appear under `/sys/devices/packt-0/`.
+    * Bus Registration
+        * bus controller itself is a device, in most cases buses are memory mapped platform devices.
+        * We should use `bus_register(struct *bufs_type)` to register bus with the kernel.
+        ```c
+        // packt.c
+        /* Return 1 if this driver can handle this device */
+        static int packt_match(struct device *dev, const struct device_driver *drv)
+        {
+            struct packt_device *pdev = to_packt_device(dev);
+
+            return !strcmp(pdev->name, drv->name);
+        }
+
+        /* Fill in env vars for udev; MODALIAS lets udev autoload the driver module */
+        static int packt_uevent(const struct device *dev, struct kobj_uevent_env *env)
+        {
+            const struct packt_device *pdev = to_packt_device(dev);
+
+            return add_uevent_var(env, "MODALIAS=packt:%s", pdev->name);
+        }
+
+        static int packt_bus_probe(struct device *dev)
+        {
+            struct packt_device *pdev = to_packt_device(dev);
+            struct packt_driver *pdrv = to_packt_driver(dev->driver);
+
+            return pdrv->probe ? pdrv->probe(pdev) : 0;
+        }
+
+        static void packt_bus_remove(struct device *dev)
+        {
+            struct packt_device *pdev = to_packt_device(dev);
+            struct packt_driver *pdrv = to_packt_driver(dev->driver);
+
+            if (pdrv->remove)
+                pdrv->remove(pdev);
+        }
+        /* This is our bus structure */
+        struct bus_type packt_bus_type = {
+            .name = "packt",
+            .match = packt_device_match,
+            .probe = packt_device_probe,
+            .remove = packt_device_remove,
+            <!-- .shutdown = packt_device_shutdown, -->
+        };
+
+        static int __init packt_init(void)
+        {
+            int status;
+            status = bus_register(&packt_bus_type);
+            if (status < 0)
+                goto err0;
+            status = class_register(&packt_master_class);
+            if (status < 0)
+                goto err1;
+            return 0;
+        err1:
+            bus_unregister(&packt_bus_type);
+        err0:
+            return status;
+        }
+        postcore_initcall(packt_init); // depends on busses and classes.
+        ```
+
+### Deep Dive in LDM
 * `LDM` relies on 3 lowest level DS:
     1. `kobject`
     1. `kobj_type`
