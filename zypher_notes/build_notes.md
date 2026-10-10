@@ -10,13 +10,18 @@ west build -p always -b rpi_pico2/rp2350a/m33 -S cdc-acm-console $(HOME)/workspa
 west twister -p native_sim/native -T tests/drivers/build_all/ethernet -s net.ethernet.build.uart
 ```
 
-### Befor Submittin
+### Befor Submitting
 ```bash
 # on latest commit
 scripts/checkpatch.pl --git HEAD
 
 # on diff
 git diff | scripts/checkpatch.pl -
+```
+
+Compliance check
+```bash
+./scripts/ci/check_compliance.py -c HEAD~1..HEAD
 ```
 
 Clang Format
